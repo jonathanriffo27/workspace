@@ -477,6 +477,7 @@ import { collections, db } from "./firebase.js";
         card.dataset.id = idea.id;
 
         const expandIcon = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M6 9l6 6 6-6"/></svg>`;
+        const saveIcon = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`;
 
         card.innerHTML = `
           <div class="checkbox ${idea.archivada ? 'checked' : ''}" data-id="${idea.id}">
@@ -491,18 +492,19 @@ import { collections, db } from "./firebase.js";
             </div>
             <div class="idea-notes-wrapper">
               <textarea data-id="${idea.id}" placeholder="Desarrolla tu idea aquí...">${idea.notes || idea.notas || ''}</textarea>
-              <div class="idea-notes-actions">
-                <button class="save-idea-btn" data-id="${idea.id}">Guardar</button>
-                <div class="sync-indicator">
-                  <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                  Guardado
-                </div>
-              </div>
             </div>
           </div>
-          <button class="delete-btn" data-id="${idea.id}">
-            <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+          <div class="item-actions">
+            <button class="delete-btn" data-id="${idea.id}">
+              <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
+              ${saveIcon}
+            </button>
+            <div class="sync-indicator">
+              <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+          </div>
         `;
         list.appendChild(card);
       });
@@ -562,7 +564,7 @@ import { collections, db } from "./firebase.js";
 
         saveBtn.disabled = true;
         const originalIcon = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<svg class="spinner" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>';
+        saveBtn.innerHTML = '<svg class="spinner" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" style="animation: spin 1s linear infinite;"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>';
 
         try {
           await updateDoc(doc(db, "ideas", id), { notas: notes });
