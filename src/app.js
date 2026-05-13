@@ -48,7 +48,8 @@ import { collections, db } from "./firebase.js";
     const icons = {
       success: '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M20 6L9 17l-5-5"/></svg>',
       error: '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>',
-      info: '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>'
+      info: '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>',
+      revert: '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>'
     };
 
     const toast = document.createElement('div');
@@ -389,7 +390,7 @@ import { collections, db } from "./firebase.js";
             await updateDoc(doc(db, "compras", id), {
               completado: !item.completado
             });
-            showToast(!item.completado ? 'Marcado como hecho' : 'Marcado como pendiente', 'info');
+            showToast(!item.completado ? 'Producto comprado' : 'Producto pendiente', !item.completado ? 'success' : 'revert');
           } catch (err) {
             showToast('Error al actualizar', 'error');
           }
@@ -594,7 +595,7 @@ import { collections, db } from "./firebase.js";
         await updateDoc(doc(db, "ideas", id), {
           archivada: !idea.archivada
         });
-        showToast(idea.archivada ? 'Idea desarchivada' : 'Idea archivada', 'info');
+        showToast(!idea.archivada ? 'Idea archivada' : 'Idea restaurada', !idea.archivada ? 'success' : 'revert');
       } catch (err) {
         showToast('Error al archivar', 'error');
       }
@@ -780,7 +781,7 @@ import { collections, db } from "./firebase.js";
             await updateDoc(doc(db, "tareas", id), {
               completado: !tarea.completado
             });
-            showToast(!tarea.completado ? 'Tarea completada' : 'Tarea reactivada', !tarea.completado ? 'success' : 'info');
+            showToast(!tarea.completado ? 'Tarea completada' : 'Tarea pendiente', !tarea.completado ? 'success' : 'revert');
           } catch (err) {
             showToast('Error al actualizar', 'error');
           }
