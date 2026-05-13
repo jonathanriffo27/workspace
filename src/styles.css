@@ -301,15 +301,18 @@ body::after {
 .item-card.idea { 
   display: flex;
   flex-direction: row;
-  align-items: center; /* Centered by default (collapsed) */
+  align-items: flex-start; /* Always top-aligned to avoid jumps */
   padding: 6px 12px;
   gap: 12px;
   cursor: pointer;
 }
 
 .item-card.idea.expanded {
-  align-items: flex-start; /* Align to top when expanded */
-  padding: 8px 12px;
+  padding: 6px 12px;
+}
+
+.item-card.idea .checkbox {
+  margin-top: 6px; /* Align with first line of text */
 }
 
 .item-card.idea .item-content {
@@ -320,6 +323,7 @@ body::after {
 }
 
 .item-card.idea .item-row { 
+  height: 32px; /* Fixed height for first line consistency */
   display: flex; 
   align-items: center; 
   justify-content: space-between;
@@ -348,7 +352,6 @@ body::after {
 }
 
 .item-card.idea.expanded .item-actions {
-  padding-top: 2px;
   gap: 8px;
 }
 
@@ -362,7 +365,7 @@ body::after {
 
 .item-card.idea.expanded .idea-notes-wrapper { 
   max-height: 600px; 
-  padding: 8px 0 0; /* Reduced padding */
+  padding: 4px 0 0; /* Tight padding */
   opacity: 1; 
 }
 
