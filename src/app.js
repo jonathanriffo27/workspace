@@ -606,6 +606,18 @@ import { collections, db } from "./firebase.js";
         titleSpan.contentEditable = true;
         titleSpan.classList.add('is-editing');
         titleSpan.focus();
+        
+        // Prevent default behavior
+        titleSpan.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            titleSpan.blur();
+          }
+        };
+
+        // Add blur listener to save on click-out
+        titleSpan.onblur = () => saveTitle(titleSpan);
+
         // Move cursor to end
         const range = document.createRange();
         const sel = window.getSelection();
