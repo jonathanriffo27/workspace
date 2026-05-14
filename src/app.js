@@ -21,15 +21,13 @@ import { collections, db } from "./firebase.js";
 
   const CATEGORIAS = ['supermercado', 'internet', 'farmacia', 'otros'];
   const PRIORIDADES = ['alta', 'media', 'baja'];
-  const COMPRAS_FILTERS = ['todas', 'supermercado', 'internet', 'farmacia', 'otros'];
   const TAREA_FILTERS = ['todas', 'pendientes', 'completadas'];
 
   const appState = {
     activeTab: 'compras',
-    compras: {
+compras: {
       items: [],
-      filter: 'todas',
-      newItemCategory: 'todas'
+      filters: []
     },
     ideas: {
       items: [],
@@ -253,9 +251,9 @@ import { collections, db } from "./firebase.js";
     });
   }
 
-  function filterComprasItems(items, filter) {
-    if (filter === 'todas') return items;
-    return items.filter(item => item.categoria === filter);
+  function filterComprasItems(items, filters) {
+    if (!filters || filters.length === 0) return items;
+    return items.filter(item => filters.includes(item.categoria));
   }
 
   function renderActionInput(id, placeholder) {
@@ -278,38 +276,31 @@ import { collections, db } from "./firebase.js";
 
   function renderComprasSection() {
     const section = document.getElementById('compras-section');
-    const { items, filter } = appState.compras;
+    const { items, filters } = appState.compras;
 
-    const filtered = filterComprasItems(items, filter);
+    const filtered = filterComprasItems(items, filters);
     const sorted = sortComprasItems(filtered);
 
-    const totalItems = items.length;
-    const completedItems = items.filter(i => i.completado).length;
+    const counts = {
+      supermercado: items.filter(i => i.categoria === 'supermercado').length,
+      internet: items.filter(i => i.categoria === 'internet').length,
+      farmacia: items.filter(i => i.categoria === 'farmacia').length
+    };
+
+    const CATEGORIES = ['supermercado', 'internet', 'farmacia'];
 
     section.innerHTML = `
       <div class="stats-bar">
-        <div class="stat-item">
-          <span class="stat-value">${totalItems}</span>
-          <span class="stat-label">Total</span>
-        </div>
-        <div class="stat-item completed">
-          <span class="stat-value">${completedItems}</span>
-          <span class="stat-label">Hecho</span>
-        </div>
-        <div class="stat-item pending">
-          <span class="stat-value">${totalItems - completedItems}</span>
-          <span class="stat-label">Pendiente</span>
-        </div>
+        ${CATEGORIES.map(cat => `
+          <div class="stat-item ${filters.includes(cat) ? 'active' : ''}" data-filter="${cat}">
+            <span class="stat-value">${counts[cat]}</span>
+            <span class="stat-label">${getCategoryLabel(cat)}</span>
+          </div>
+        `).join('')}
       </div>
 
       <div class="input-wrapper">
         ${renderActionInput('compras-input', 'Añadir producto...')}
-      </div>
-
-      <div class="filter-wrapper">
-        <div class="filter-chips compras">
-          ${COMPRAS_FILTERS.map(f => `<button class="chip ${filter === f ? 'active' : ''}" data-filter="${f}">${f === 'todas' ? 'Todas' : getCategoryLabel(f)}</button>`).join('')}
-        </div>
       </div>
 
       <div class="items-list" id="compras-list">
@@ -356,13 +347,14 @@ import { collections, db } from "./firebase.js";
     const input = document.getElementById('compras-input');
     const addBtn = document.getElementById('compras-input-btn');
     const list = document.getElementById('compras-list');
-    const filterChips = document.querySelectorAll('.filter-chips.compras .chip');
+    const statsBar = section.querySelector('.stats-bar');
 
     const addItem = async () => {
       const nombre = input.value.trim();
       if (!nombre) return;
 
-      const categoria = appState.compras.filter === 'todas' ? 'supermercado' : appState.compras.filter;
+      const filters = appState.compras.filters;
+      const categoria = filters.length > 0 ? filters[0] : 'supermercado';
 
       try {
         await addDoc(collections.compras, {
@@ -377,6 +369,25 @@ import { collections, db } from "./firebase.js";
         showToast('Error al añadir producto', 'error');
       }
     };
+
+    addBtn.addEventListener('click', addItem);
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addItem(); });
+
+    statsBar.addEventListener('click', (e) => {
+      const statItem = e.target.closest('.stat-item');
+      if (statItem) {
+        const filter = statItem.dataset.filter;
+        const currentFilters = appState.compras.filters;
+        
+        if (currentFilters.includes(filter)) {
+          appState.compras.filters = currentFilters.filter(f => f !== filter);
+        } else {
+          appState.compras.filters = [...currentFilters, filter];
+        }
+        
+        renderComprasSection();
+      }
+    });
 
       // ... rest of event listeners ...
 
