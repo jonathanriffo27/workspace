@@ -227,7 +227,10 @@ import { collections, db } from "./firebase.js";
   }
 
   function sortIdeasItems(items) {
-    return [...items].sort((a, b) => b.creadoEn - a.creadoEn);
+    return [...items].sort((a, b) => {
+      if (a.archivada !== b.archivada) return a.archivada ? 1 : -1;
+      return b.creadoEn - a.creadoEn;
+    });
   }
 
   function sortTareasItems(items) {
@@ -581,11 +584,60 @@ import { collections, db } from "./firebase.js";
         }
       }
 
-      if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea')) {
+      if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea') && !e.target.closest('.item-text')) {
         const card = expandBtn.closest('.item-card');
         card.classList.toggle('expanded');
       }
     });
+
+    list.addEventListener('mousedown', (e) => handleLongPressStart(e));
+    list.addEventListener('touchstart', (e) => handleLongPressStart(e));
+    list.addEventListener('mouseup', (e) => handleLongPressEnd(e));
+    list.addEventListener('mouseleave', (e) => handleLongPressEnd(e));
+    list.addEventListener('touchend', (e) => handleLongPressEnd(e));
+    list.addEventListener('touchmove', (e) => handleLongPressEnd(e));
+
+    let pressTimer;
+    function handleLongPressStart(e) {
+      const titleSpan = e.target.closest('.item-text');
+      if (!titleSpan) return;
+      
+      pressTimer = setTimeout(() => {
+        titleSpan.contentEditable = true;
+        titleSpan.classList.add('is-editing');
+        titleSpan.focus();
+        // Move cursor to end
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(titleSpan);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }, 600);
+    }
+
+    function handleLongPressEnd(e) {
+      clearTimeout(pressTimer);
+      const titleSpan = e.target.closest('.item-text');
+      if (titleSpan && titleSpan.contentEditable === 'true') {
+        saveTitle(titleSpan);
+      }
+    }
+
+    async function saveTitle(el) {
+      el.contentEditable = false;
+      el.classList.remove('is-editing');
+      const newTitle = el.textContent.trim();
+      const card = el.closest('.item-card');
+      const id = card.dataset.id;
+      
+      try {
+        await updateDoc(doc(db, "ideas", id), { titulo: newTitle });
+        showToast('Título actualizado', 'success');
+      } catch (err) {
+        showToast('Error al actualizar', 'error');
+      }
+    }
   }
 
   async function toggleArchiveIdea(id) {

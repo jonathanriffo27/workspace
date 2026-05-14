@@ -330,14 +330,13 @@ body::after {
   gap: 8px; 
 }
 
-.item-card.idea .item-text {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.item-text.is-editing {
+  background: var(--bg-tertiary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  outline: 2px solid var(--accent-primary);
+  white-space: normal;
+  cursor: text;
 }
 
 .item-actions {
