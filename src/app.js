@@ -749,17 +749,6 @@ import { collections, db } from "./firebase.js";
         </div>
       </div>
 
-      <div class="priority-wrapper">
-        <div class="studio-controls">
-          <div class="priority-segmented">
-            ${PRIORIDADES.map(p => `<button class="priority-option ${p} ${appState.tareas.newTaskPriority === p ? 'active' : ''}" data-priority="${p}">${getPriorityLabel(p)}</button>`).join('')}
-          </div>
-          <div class="studio-date-wrapper">
-            <input type="date" class="studio-date-input" id="tarea-date">
-          </div>
-        </div>
-      </div>
-
       <div class="items-list" id="tareas-list">
         ${sorted.length === 0 ? `
           <div class="empty-state">
@@ -775,10 +764,16 @@ import { collections, db } from "./firebase.js";
 
     if (sorted.length > 0) {
       const list = section.querySelector('#tareas-list');
+      const expandIcon = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M6 9l6 6 6-6"/></svg>`;
+      const saveIcon = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`;
+
       sorted.forEach(tarea => {
         const card = document.createElement('div');
         card.className = `item-card task ${tarea.completado ? 'completed' : ''}`;
         card.dataset.id = tarea.id;
+        
+        const fechaLimiteValue = tarea.fechaLimite ? new Date(tarea.fechaLimite).toISOString().split('T')[0] : '';
+        
         card.innerHTML = `
           <div class="checkbox ${tarea.completado ? 'checked' : ''}" data-id="${tarea.id}">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -786,7 +781,7 @@ import { collections, db } from "./firebase.js";
           <div class="item-content">
             <div class="item-row">
               <span class="item-text">${tarea.titulo}</span>
-              <div class="task-meta" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+              <div class="task-meta-inline" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                 <span class="badge badge-priority ${tarea.prioridad}">${getPriorityLabel(tarea.prioridad)}</span>
                 ${tarea.fechaLimite ? `
                   <span class="badge-date">
@@ -795,11 +790,35 @@ import { collections, db } from "./firebase.js";
                   </span>
                 ` : ''}
               </div>
+              <button class="expand-indicator-btn" style="background:transparent; border:none; color:var(--text-tertiary); display:flex; padding:0;">
+                ${expandIcon}
+              </button>
+            </div>
+            <div class="task-edit-fields">
+              <div class="task-row-edit">
+                <select class="priority-select" data-id="${tarea.id}">
+                  ${PRIORIDADES.map(p => `<option value="${p}" ${tarea.prioridad === p ? 'selected' : ''}>${getPriorityLabel(p)}</option>`).join('')}
+                </select>
+                <div class="studio-date-wrapper">
+                  <input type="date" class="studio-date-input" value="${fechaLimiteValue}">
+                </div>
+              </div>
+              <div class="task-notes-wrapper">
+                <textarea placeholder="Notas adicionales...">${tarea.notas || ''}</textarea>
+              </div>
             </div>
           </div>
-          <button class="delete-btn" data-id="${tarea.id}">
-            <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+          <div class="item-actions">
+            <button class="delete-btn" data-id="${tarea.id}">
+              <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
+              ${saveIcon}
+            </button>
+            <div class="sync-indicator">
+              <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+          </div>
         `;
         list.appendChild(card);
       });
@@ -811,8 +830,6 @@ import { collections, db } from "./firebase.js";
   function attachTareasEvents() {
     const input = document.getElementById('tarea-input');
     const addBtn = document.getElementById('tarea-input-btn');
-    const priorityBtns = document.querySelectorAll('.priority-segmented .priority-option');
-    const dateInput = document.getElementById('tarea-date');
     const list = document.getElementById('tareas-list');
     const statsBar = document.querySelector('#tareas-section .stats-bar');
 
@@ -820,18 +837,16 @@ import { collections, db } from "./firebase.js";
       const titulo = input.value.trim();
       if (!titulo) return;
 
-      const fechaLimite = dateInput.value ? new Date(dateInput.value).getTime() : null;
-
       try {
         await addDoc(collections.tareas, {
           titulo,
-          prioridad: appState.tareas.newTaskPriority,
-          fechaLimite,
+          prioridad: 'media',
+          fechaLimite: null,
+          notas: '',
           completado: false,
           creadoEn: serverTimestamp()
         });
         input.value = '';
-        dateInput.value = '';
         showToast('Tarea añadida', 'success');
       } catch (err) {
         showToast('Error al añadir tarea', 'error');
@@ -840,13 +855,6 @@ import { collections, db } from "./firebase.js";
 
     addBtn.addEventListener('click', addTarea);
     input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTarea(); });
-
-    priorityBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        appState.tareas.newTaskPriority = btn.dataset.priority;
-        renderTareasSection();
-      });
-    });
 
     statsBar.addEventListener('click', (e) => {
       const statItem = e.target.closest('.stat-item');
@@ -859,6 +867,8 @@ import { collections, db } from "./firebase.js";
     list.addEventListener('click', async (e) => {
       const checkbox = e.target.closest('.checkbox');
       const deleteBtn = e.target.closest('.delete-btn');
+      const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
+      const saveBtn = e.target.closest('.save-task-btn');
 
       if (checkbox) {
         const id = checkbox.dataset.id;
@@ -895,6 +905,66 @@ import { collections, db } from "./firebase.js";
             closeModal();
           }
         });
+      }
+
+      if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.item-text') && !e.target.closest('.priority-select') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea')) {
+        const card = expandBtn.closest('.item-card');
+        card.classList.toggle('expanded');
+      }
+
+      if (saveBtn) {
+        const id = saveBtn.dataset.id;
+        const card = saveBtn.closest('.item-card');
+        const textarea = card.querySelector('.task-notes-wrapper textarea');
+        const sync = card.querySelector('.sync-indicator');
+        const notas = textarea.value;
+
+        saveBtn.disabled = true;
+        const originalIcon = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<svg class="spinner" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" style="animation: spin 1s linear infinite;"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>';
+
+        try {
+          await updateDoc(doc(db, "tareas", id), { notas: notas });
+          saveBtn.innerHTML = originalIcon;
+          saveBtn.disabled = false;
+          
+          sync.classList.add('visible');
+          setTimeout(() => sync.classList.remove('visible'), 2000);
+        } catch (err) {
+          showToast('Error al guardar', 'error');
+          saveBtn.innerHTML = originalIcon;
+          saveBtn.disabled = false;
+        }
+      }
+    });
+
+    list.addEventListener('change', async (e) => {
+      const prioritySelect = e.target.closest('.priority-select');
+      const dateInput = e.target.closest('.studio-date-input');
+
+      if (prioritySelect) {
+        const id = prioritySelect.dataset.id;
+        const newPriority = prioritySelect.value;
+
+        try {
+          await updateDoc(doc(db, "tareas", id), { prioridad: newPriority });
+          showToast('Prioridad actualizada', 'success');
+        } catch (err) {
+          showToast('Error al actualizar prioridad', 'error');
+        }
+      }
+
+      if (dateInput) {
+        const card = dateInput.closest('.item-card');
+        const id = card.dataset.id;
+        const newFechaLimite = dateInput.value ? new Date(dateInput.value).getTime() : null;
+
+        try {
+          await updateDoc(doc(db, "tareas", id), { fechaLimite: newFechaLimite });
+          showToast('Fecha actualizada', 'success');
+        } catch (err) {
+          showToast('Error al actualizar fecha', 'error');
+        }
       }
     });
 
