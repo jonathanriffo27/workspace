@@ -3,8 +3,20 @@ import {
   getFirestore, 
   initializeFirestore,
   CACHE_SIZE_UNLIMITED,
-  collection 
+  collection,
+  query,
+  where,
+  orderBy
 } from "firebase/firestore";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "firebase/auth";
 
 /**
  * REEMPLAZA ESTA CONFIGURACIÓN CON TU PROPIA CONFIGURACIÓN DE FIREBASE
@@ -21,17 +33,17 @@ const firebaseConfig = {
   measurementId: "G-V8YX1W4TW1"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = initializeFirestore(app, {
   cacheSizeBytes: CACHE_SIZE_UNLIMITED
 });
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
-// Collections references
 export const collections = {
   compras: collection(db, "compras"),
   ideas: collection(db, "ideas"),
   tareas: collection(db, "tareas")
 };
 
-export { db };
+export { db, auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };

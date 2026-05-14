@@ -149,12 +149,63 @@
   ```
   {
     activeTab: 'compras' | 'ideas' | 'tareas',
+    user: FirebaseUser | null,
+    userId: string | null,
+    authLoading: boolean,
     compras: { items: [], filter: 'todas' },
     ideas: { items: [], searchQuery: '' },
     tareas: { items: [], filter: 'todas' },
     ui: { toast: null, modal: null }
   }
   ```
+
+### Authentication
+
+**Features:**
+- Firebase Authentication with two methods:
+  - Email/Password (login and registration)
+  - Google Sign-In (OAuth popup)
+- Protected app content (login required)
+- User session persistence via Firebase Auth
+- User-specific data isolation (Firestore queries filtered by userId)
+- Logout functionality
+
+**Auth UI Elements:**
+- Full-screen login overlay blocking app access
+- Tabbed interface: "Iniciar Sesión" / "Registrarse"
+- Email input with validation
+- Password input (min 6 characters for registration)
+- Error messages in Spanish for common Firebase auth errors
+- Google Sign-In button with Google logo
+- User info display in header after login (name + logout button)
+
+**Auth State Flow:**
+1. App loads → `onAuthStateChanged` callback fires
+2. If no user → `showLoginScreen()` renders login UI
+3. If user authenticated → `hideLoginScreen()`, `updateHeaderForUser()`, `initFirestoreSync()`
+4. On logout → `signOut(auth)` → auth state changes → login screen shown again
+
+**Security Rules (Firestore):**
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{collection}/{docId} {
+      allow read, write: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}
+```
+
+### Firebase Console Configuration Required
+
+**Dominios autorizados (Authentication > Configuración > Dominios autorizados):**
+- localhost
+- 165.1.126.90
+
+**Habilitar métodos de autenticación:**
+- Correo electrónico/contraseña
+- Google (configurar correo de soporte)
 
 ### Storage Layer
 
@@ -183,6 +234,7 @@
   nombre: string,
   categoria: 'supermercado' | 'internet' | 'farmacia' | 'otros',
   completado: boolean,
+  userId: string (Firebase UID),
   creadoEn: timestamp
 }
 ```
@@ -210,6 +262,7 @@
   titulo: string,
   notas: string,
   archivada: boolean,
+  userId: string (Firebase UID),
   creadoEn: timestamp
 }
 ```
@@ -239,6 +292,7 @@
   prioridad: 'alta' | 'media' | 'baja',
   fechaLimite: timestamp | null,
   completado: boolean,
+  userId: string (Firebase UID),
   creadoEn: timestamp
 }
 ```
