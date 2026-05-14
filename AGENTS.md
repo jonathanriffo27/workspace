@@ -7,9 +7,16 @@ The app is a SPA with its main entry point at `index.html`. The logic and styles
 ## Dev Commands
 
 ```bash
-pnpm dev    # Vite dev server at http://0.0.0.0:4173
-pnpm build  # Build for production
+pnpm dev      # Vite dev server at http://0.0.0.0:4173
+pnpm build    # Build for production
+pnpm preview  # Preview production build locally
 ```
+
+**No test suite** - this is a vanilla JS project with no tests.
+
+## ⚠️ Package Manager
+
+**Use pnpm exclusively** - never npm. This project and global installations should use pnpm for security.
 
 ## Architecture
 

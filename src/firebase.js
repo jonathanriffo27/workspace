@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { 
   getFirestore, 
-  enableIndexedDbPersistence, 
+  initializeFirestore,
+  CACHE_SIZE_UNLIMITED,
   collection 
 } from "firebase/firestore";
 
@@ -22,17 +23,8 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Enable offline persistence for a mobile-first premium experience
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code === 'failed-precondition') {
-    // Multiple tabs open, persistence can only be enabled in one tab at a time.
-    console.warn('Firebase Persistence failed: Multiple tabs open');
-  } else if (err.code === 'unimplemented') {
-    // The current browser does not support all of the features required to enable persistence
-    console.warn('Firebase Persistence failed: Browser not supported');
-  }
+const db = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED
 });
 
 // Collections references

@@ -766,6 +766,7 @@ import { collections, db } from "./firebase.js";
       sorted.forEach(tarea => {
         const card = document.createElement('div');
         card.className = `item-card task ${tarea.completado ? 'completed' : ''}`;
+        card.dataset.id = tarea.id;
         card.innerHTML = `
           <div class="checkbox ${tarea.completado ? 'checked' : ''}" data-id="${tarea.id}">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -883,6 +884,75 @@ import { collections, db } from "./firebase.js";
         });
       }
     });
+
+    list.addEventListener('mousedown', (e) => {
+      const titleSpan = e.target.closest('.item-text');
+      if (!titleSpan) return;
+      
+      const timer = setTimeout(() => {
+        startEditingTarea(titleSpan);
+      }, 600);
+      
+      const cancel = () => clearTimeout(timer);
+      list.addEventListener('mouseup', cancel, { once: true });
+      list.addEventListener('mouseleave', cancel, { once: true });
+    });
+
+    list.addEventListener('touchstart', (e) => {
+      const titleSpan = e.target.closest('.item-text');
+      if (!titleSpan) return;
+      
+      const timer = setTimeout(() => {
+        startEditingTarea(titleSpan);
+      }, 600);
+      
+      const cancel = () => clearTimeout(timer);
+      list.addEventListener('touchend', cancel, { once: true });
+      list.addEventListener('touchmove', cancel, { once: true });
+    });
+
+    function startEditingTarea(titleSpan) {
+      titleSpan.contentEditable = true;
+      titleSpan.classList.add('is-editing');
+      titleSpan.dataset.editing = 'true';
+      titleSpan.focus();
+      
+      titleSpan.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          titleSpan.blur();
+        }
+      };
+
+      titleSpan.onblur = () => {
+        if (titleSpan.dataset.editing === 'true') {
+          finishEditingTarea(titleSpan);
+        }
+      };
+
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(titleSpan);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    async function finishEditingTarea(titleSpan) {
+      titleSpan.contentEditable = false;
+      titleSpan.classList.remove('is-editing');
+      delete titleSpan.dataset.editing;
+      const newTitle = titleSpan.textContent.trim();
+      const card = titleSpan.closest('.item-card');
+      const id = card.dataset.id;
+      
+      try {
+        await updateDoc(doc(collections.tareas, id), { titulo: newTitle });
+        showToast('Título actualizado', 'success');
+      } catch (err) {
+        showToast('Error al actualizar', 'error');
+      }
+    }
   }
 
   function switchTab(tab) {
