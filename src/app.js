@@ -289,6 +289,12 @@ compras: {
 
     const CATEGORIES = ['supermercado', 'internet', 'farmacia'];
 
+    const showEmpty = sorted.length === 0;
+    const emptyTitle = filters.length > 0 ? 'Sin resultados' : 'Lista vacía';
+    const emptyText = filters.length > 0 
+      ? 'No hay productos en ' + getCategoryLabel(filters[0]) 
+      : 'Añade productos a tu lista de compras';
+    
     section.innerHTML = `
       <div class="stats-bar">
         ${CATEGORIES.map(cat => `
@@ -304,13 +310,13 @@ compras: {
       </div>
 
       <div class="items-list" id="compras-list">
-        ${sorted.length === 0 ? `
+        ${showEmpty ? `
           <div class="empty-state">
             <div class="empty-icon">
-              <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM9 21V9h6v12M9 9h6M9 9v0M15 9v0" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none"><path d="M3 3h18v18H3zM9 21V9h6v12M9 9h6M9 9v0M15 9v0" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <h3 class="empty-title">Lista vacía</h3>
-            <p class="empty-text">Añade productos a tu lista de compras</p>
+            <h3 class="empty-title">${emptyTitle}</h3>
+            <p class="empty-text">${emptyText}</p>
           </div>
         ` : ''}
       </div>
@@ -344,6 +350,7 @@ compras: {
   }
 
   function attachComprasEvents() {
+    const section = document.getElementById('compras-section');
     const input = document.getElementById('compras-input');
     const addBtn = document.getElementById('compras-input-btn');
     const list = document.getElementById('compras-list');
@@ -380,9 +387,9 @@ compras: {
         const currentFilters = appState.compras.filters;
         
         if (currentFilters.includes(filter)) {
-          appState.compras.filters = currentFilters.filter(f => f !== filter);
+          appState.compras.filters = [];
         } else {
-          appState.compras.filters = [...currentFilters, filter];
+          appState.compras.filters = [filter];
         }
         
         renderComprasSection();
@@ -792,18 +799,20 @@ compras: {
           <div class="item-content">
             <div class="item-row">
               <span class="item-text">${tarea.titulo}</span>
-              <div class="task-meta-inline" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                <span class="badge badge-priority ${tarea.prioridad}">${getPriorityLabel(tarea.prioridad)}</span>
-                ${tarea.fechaLimite ? `
-                  <span class="badge-date">
-                    <svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    ${formatDate(tarea.fechaLimite)}
-                  </span>
-                ` : ''}
+              <div class="task-meta-expand-wrapper">
+                <div class="task-meta-inline" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                  <span class="badge badge-priority ${tarea.prioridad}">${getPriorityLabel(tarea.prioridad)}</span>
+                  ${tarea.fechaLimite ? `
+                    <span class="badge-date">
+                      <svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                      ${formatDate(tarea.fechaLimite)}
+                    </span>
+                  ` : ''}
+                </div>
+                <button class="expand-indicator-btn" style="background:transparent; border:none; color:var(--text-tertiary); display:flex; padding:0;">
+                  ${expandIcon}
+                </button>
               </div>
-              <button class="expand-indicator-btn" style="background:transparent; border:none; color:var(--text-tertiary); display:flex; padding:0;">
-                ${expandIcon}
-              </button>
             </div>
             <div class="task-edit-fields">
               <div class="task-row-edit">
