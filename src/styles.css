@@ -435,6 +435,14 @@ body::after {
 
 .item-card.task .item-row { height: 32px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
+.item-card.task.expanded {
+  align-items: flex-start;
+}
+
+.item-card.task.expanded .checkbox {
+  margin-top: 6px;
+}
+
 .item-card.task .item-actions > * {
   transition: all 0.3s ease;
 }
