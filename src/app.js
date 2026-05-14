@@ -324,6 +324,7 @@ import { collections, db } from "./firebase.js";
       sorted.forEach(item => {
         const card = document.createElement('div');
         card.className = `item-card ${item.completado ? 'completed' : ''}`;
+        card.dataset.id = item.id;
         card.innerHTML = `
           <div class="checkbox ${item.completado ? 'checked' : ''}" data-id="${item.id}">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -371,57 +372,65 @@ import { collections, db } from "./firebase.js";
       }
     };
 
-    addBtn.addEventListener('click', addItem);
-    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addItem(); });
+      // ... rest of event listeners ...
 
-    filterChips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        appState.compras.filter = chip.dataset.filter;
-        renderComprasSection();
-      });
-    });
+    list.addEventListener('mousedown', (e) => handlePressStart(e, 'compras'));
+    list.addEventListener('touchstart', (e) => handlePressStart(e, 'compras'));
+    list.addEventListener('mouseup', (e) => handlePressEnd(e, 'compras'));
+    list.addEventListener('mouseleave', (e) => handlePressEnd(e, 'compras'));
+    list.addEventListener('touchend', (e) => handlePressEnd(e, 'compras'));
+    list.addEventListener('touchmove', (e) => handlePressEnd(e, 'compras'));
 
-    list.addEventListener('click', async (e) => {
-      const checkbox = e.target.closest('.checkbox');
-      const deleteBtn = e.target.closest('.delete-btn');
-
-      if (checkbox) {
-        const id = checkbox.dataset.id;
-        const item = appState.compras.items.find(i => i.id === id);
-        if (item) {
-          try {
-            await updateDoc(doc(db, "compras", id), {
-              completado: !item.completado
-            });
-            showToast(!item.completado ? 'Producto comprado' : 'Producto pendiente', !item.completado ? 'success' : 'revert');
-          } catch (err) {
-            showToast('Error al actualizar', 'error');
+    let pressTimer;
+    function handlePressStart(e, type) {
+      const titleSpan = e.target.closest('.item-text');
+      if (!titleSpan) return;
+      
+      pressTimer = setTimeout(() => {
+        titleSpan.contentEditable = true;
+        titleSpan.classList.add('is-editing');
+        titleSpan.focus();
+        
+        titleSpan.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            titleSpan.blur();
           }
-        }
-      }
+        };
 
-      if (deleteBtn) {
-        const id = deleteBtn.dataset.id;
-        showModal('Eliminar producto', '<p>¿Estás seguro de que quieres eliminar este producto?</p>', [
-          { label: 'Cancelar', action: 'cancel', primary: false },
-          { label: 'Eliminar', action: 'delete', primary: true }
-        ]).addEventListener('click', async (e) => {
-          const actionBtn = e.target.closest('[data-action]');
-          if (actionBtn) {
-            const action = actionBtn.dataset.action;
-            if (action === 'delete') {
-              try {
-                await deleteDoc(doc(db, "compras", id));
-                showToast('Producto eliminado', 'info');
-              } catch (err) {
-                showToast('Error al eliminar', 'error');
-              }
-            }
-            closeModal();
-          }
-        });
+        titleSpan.onblur = () => saveTitle(titleSpan, type);
+
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(titleSpan);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }, 600);
+    }
+
+    function handlePressEnd(e, type) {
+      clearTimeout(pressTimer);
+      const titleSpan = e.target.closest('.item-text');
+      if (titleSpan && titleSpan.contentEditable === 'true') {
+        saveTitle(titleSpan, type);
       }
-    });
+    }
+
+    async function saveTitle(el, type) {
+      el.contentEditable = false;
+      el.classList.remove('is-editing');
+      const newTitle = el.textContent.trim();
+      const card = el.closest('.item-card');
+      const id = card.dataset.id;
+      
+      try {
+        await updateDoc(doc(db, type, id), { nombre: newTitle });
+        showToast('Título actualizado', 'success');
+      } catch (err) {
+        showToast('Error al actualizar', 'error');
+      }
+    }
   }
 
   function renderIdeasSection() {
