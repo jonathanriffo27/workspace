@@ -426,33 +426,44 @@ body::after {
 .sync-indicator.visible { opacity: 1; }
 
 /* Task Cards */
+.item-card.task {
+  align-items: flex-start;
+  padding: 6px 12px;
+  gap: 12px;
+  cursor: pointer;
+}
+
 .item-card.task .checkbox {
   flex-shrink: 0;
+  margin-top: 6px;
 }
 
 .item-card.task .task-meta-inline { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .item-card.task.expanded .task-meta-inline { display: none; }
 
-.item-card.task .item-row { height: 32px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-
-.item-card.task.expanded {
-  align-items: flex-start;
+.item-card.task .item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.item-card.task.expanded .checkbox {
-  margin-top: 6px;
+.item-card.task .item-row { 
+  min-height: 32px;
+  height: 32px;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  gap: 8px; 
 }
 
-.item-card.task .item-actions > * {
-  transition: all 0.3s ease;
-}
-
-.item-card.task:not(.expanded) .item-actions > * {
-  margin: 0;
-}
-
-.item-card.task.expanded .item-actions > * {
-  margin-bottom: 8px;
+.item-card.task .item-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 32px;
+  padding-top: 0;
 }
 
 .item-card.task.expanded .item-actions > *:last-child {
