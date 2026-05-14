@@ -13,6 +13,12 @@ import { collections, db } from "./firebase.js";
 (function() {
   'use strict';
 
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason?.message?.includes('message channel closed')) {
+      event.preventDefault();
+    }
+  });
+
   const CATEGORIAS = ['supermercado', 'internet', 'farmacia', 'otros'];
   const PRIORIDADES = ['alta', 'media', 'baja'];
   const COMPRAS_FILTERS = ['todas', 'supermercado', 'internet', 'farmacia', 'otros'];
@@ -389,6 +395,7 @@ import { collections, db } from "./firebase.js";
       pressTimer = setTimeout(() => {
         titleSpan.contentEditable = true;
         titleSpan.classList.add('is-editing');
+        titleSpan.dataset.editing = 'true';
         titleSpan.focus();
         
         titleSpan.onkeydown = (e) => {
@@ -398,7 +405,11 @@ import { collections, db } from "./firebase.js";
           }
         };
 
-        titleSpan.onblur = () => saveTitle(titleSpan, type);
+        titleSpan.onblur = () => {
+          if (titleSpan.dataset.editing === 'true') {
+            saveTitle(titleSpan, type);
+          }
+        };
 
         const range = document.createRange();
         const sel = window.getSelection();
@@ -412,7 +423,7 @@ import { collections, db } from "./firebase.js";
     function handlePressEnd(e, type) {
       clearTimeout(pressTimer);
       const titleSpan = e.target.closest('.item-text');
-      if (titleSpan && titleSpan.contentEditable === 'true') {
+      if (titleSpan && titleSpan.dataset.editing === 'true') {
         saveTitle(titleSpan, type);
       }
     }
@@ -420,6 +431,7 @@ import { collections, db } from "./firebase.js";
     async function saveTitle(el, type) {
       el.contentEditable = false;
       el.classList.remove('is-editing');
+      delete el.dataset.editing;
       const newTitle = el.textContent.trim();
       const card = el.closest('.item-card');
       const id = card.dataset.id;
@@ -614,6 +626,7 @@ import { collections, db } from "./firebase.js";
       pressTimer = setTimeout(() => {
         titleSpan.contentEditable = true;
         titleSpan.classList.add('is-editing');
+        titleSpan.dataset.editing = 'true';
         titleSpan.focus();
         
         // Prevent default behavior
@@ -625,7 +638,11 @@ import { collections, db } from "./firebase.js";
         };
 
         // Add blur listener to save on click-out
-        titleSpan.onblur = () => saveTitle(titleSpan);
+        titleSpan.onblur = () => {
+          if (titleSpan.dataset.editing === 'true') {
+            saveTitle(titleSpan);
+          }
+        };
 
         // Move cursor to end
         const range = document.createRange();
@@ -640,7 +657,7 @@ import { collections, db } from "./firebase.js";
     function handleLongPressEnd(e) {
       clearTimeout(pressTimer);
       const titleSpan = e.target.closest('.item-text');
-      if (titleSpan && titleSpan.contentEditable === 'true') {
+      if (titleSpan && titleSpan.dataset.editing === 'true') {
         saveTitle(titleSpan);
       }
     }
@@ -648,6 +665,7 @@ import { collections, db } from "./firebase.js";
     async function saveTitle(el) {
       el.contentEditable = false;
       el.classList.remove('is-editing');
+      delete el.dataset.editing;
       const newTitle = el.textContent.trim();
       const card = el.closest('.item-card');
       const id = card.dataset.id;
@@ -708,15 +726,15 @@ import { collections, db } from "./firebase.js";
 
     section.innerHTML = `
       <div class="stats-bar">
-        <div class="stat-item">
+        <div class="stat-item ${filter === 'todas' ? 'active' : ''}" data-filter="todas">
           <span class="stat-value">${totalTareas}</span>
           <span class="stat-label">Total</span>
         </div>
-        <div class="stat-item completed">
+        <div class="stat-item completed ${filter === 'completadas' ? 'active' : ''}" data-filter="completadas">
           <span class="stat-value">${completedTareas}</span>
           <span class="stat-label">Hecho</span>
         </div>
-        <div class="stat-item pending">
+        <div class="stat-item pending ${filter === 'pendientes' ? 'active' : ''}" data-filter="pendientes">
           <span class="stat-value">${totalTareas - completedTareas}</span>
           <span class="stat-label">Pendiente</span>
         </div>
@@ -739,12 +757,6 @@ import { collections, db } from "./firebase.js";
           <div class="studio-date-wrapper">
             <input type="date" class="studio-date-input" id="tarea-date">
           </div>
-        </div>
-      </div>
-
-      <div class="filter-wrapper centered">
-        <div class="filter-chips">
-          ${TAREA_FILTERS.map(f => `<button class="chip tareas ${filter === f ? 'active' : ''}" data-filter="${f}">${f === 'todas' ? 'Todas' : f === 'pendientes' ? 'Pendientes' : f === 'completadas' ? 'Hechas' : f}</button>`).join('')}
         </div>
       </div>
 
@@ -802,7 +814,7 @@ import { collections, db } from "./firebase.js";
     const priorityBtns = document.querySelectorAll('.priority-segmented .priority-option');
     const dateInput = document.getElementById('tarea-date');
     const list = document.getElementById('tareas-list');
-    const filterChips = document.querySelectorAll('.filter-chips .chip');
+    const statsBar = document.querySelector('#tareas-section .stats-bar');
 
     const addTarea = async () => {
       const titulo = input.value.trim();
@@ -836,11 +848,12 @@ import { collections, db } from "./firebase.js";
       });
     });
 
-    filterChips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        appState.tareas.filter = chip.dataset.filter;
+    statsBar.addEventListener('click', (e) => {
+      const statItem = e.target.closest('.stat-item');
+      if (statItem) {
+        appState.tareas.filter = statItem.dataset.filter;
         renderTareasSection();
-      });
+      }
     });
 
     list.addEventListener('click', async (e) => {
