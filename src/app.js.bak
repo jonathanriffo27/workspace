@@ -397,7 +397,7 @@ import { collections, db } from "./firebase.js";
     overlay.innerHTML = `
       <div class="modal">
         <h3 class="modal-title">${title}</h3>
-        ${content}
+        <div class="modal-body">${content}</div>
         <div class="modal-actions">
           ${buttons.map(btn => `<button class="modal-btn ${btn.primary ? 'primary' : 'secondary'}" data-action="${btn.action}">${btn.label}</button>`).join('')}
         </div>
@@ -411,8 +411,8 @@ import { collections, db } from "./firebase.js";
       const actionBtn = e.target.closest('[data-action]');
       if (actionBtn) {
         const action = actionBtn.dataset.action;
-        if (callback) callback(action);
         closeModal();
+        if (callback) callback(action);
       } else if (e.target === overlay) {
         closeModal();
       }
@@ -632,7 +632,6 @@ import { collections, db } from "./firebase.js";
   }
 
   function attachComprasEvents() {
-    console.log('attachComprasEvents called');
     const section = document.getElementById('compras-section');
     const input = document.getElementById('compras-input');
     const addBtn = document.getElementById('compras-input-btn');
@@ -666,49 +665,32 @@ import { collections, db } from "./firebase.js";
     input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addItem(); });
 
     list.addEventListener('click', async (e) => {
-      try {
-        console.log('Click event on list:', e.target);
-        const checkbox = e.target.closest('.checkbox');
-        const deleteBtn = e.target.closest('.delete-btn');
-        console.log('deleteBtn found:', deleteBtn);
-
-        if (checkbox) {
-        const id = checkbox.dataset.id;
-        const item = appState.compras.items.find(i => i.id === id);
-        if (item) {
-          try {
-            await updateDoc(doc(db, 'compras', id), {
-              completado: !item.completado
-            });
-            showToast(item.completado ? 'Marcado como pendiente' : 'Marcado como completado', 'success');
-          } catch (err) {
-            console.error('Error updating item:', err);
-            showToast('Error al actualizar', 'error');
-          }
-        }
-      }
+      console.log('Click detectado en lista de Compras:', e.target);
+      const checkbox = e.target.closest('.checkbox');
+      const deleteBtn = e.target.closest('.delete-btn');
+      
+      console.log('Delete button identified:', deleteBtn);
 
       if (deleteBtn) {
+        console.log('Botón de eliminar pulsado para ID:', deleteBtn.dataset.id);
         const id = deleteBtn.dataset.id;
         showModal('Eliminar producto', '<p>¿Estás seguro de que quieres eliminar este producto?</p>', [
           { label: 'Cancelar', action: 'cancel', primary: false },
           { label: 'Eliminar', action: 'delete', primary: true }
         ], async (action) => {
+          console.log('Acción del modal:', action);
           if (action === 'delete') {
             try {
               await deleteDoc(doc(db, 'compras', id));
-              showToast('Producto eliminado', 'success');
+              showToast('Producto eliminado', 'info');
             } catch (err) {
               console.error('Error deleting item:', err);
               showToast('Error al eliminar', 'error');
             }
           }
         });
+        return;
       }
-      } catch (err) {
-        console.error('Error in Compras click handler:', err);
-      }
-    });
 
     statsBar.addEventListener('click', (e) => {
       const statItem = e.target.closest('.stat-item');
@@ -897,7 +879,6 @@ import { collections, db } from "./firebase.js";
   }
 
   function attachIdeasEvents() {
-    console.log('attachIdeasEvents called');
     const titleInput = document.getElementById('idea-title-input');
     const addBtn = document.getElementById('idea-title-input-btn');
     const list = document.getElementById('ideas-list');
@@ -926,25 +907,27 @@ import { collections, db } from "./firebase.js";
     titleInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addIdea(); });
 
     list.addEventListener('click', async (e) => {
-      try {
-        console.log('Ideas list click:', e.target);
-        const checkbox = e.target.closest('.checkbox');
-        const deleteBtn = e.target.closest('.delete-btn');
-        console.log('Ideas deleteBtn:', deleteBtn);
-        const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
-        const saveBtn = e.target.closest('.save-idea-btn');
-        
-        if (checkbox) {
-          const id = checkbox.dataset.id;
-          toggleArchiveIdea(id);
-        }
+      console.log('Click detectado en lista de Ideas:', e.target);
+      const checkbox = e.target.closest('.checkbox');
+      const deleteBtn = e.target.closest('.delete-btn');
+      const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
+      const saveBtn = e.target.closest('.save-idea-btn');
+      
+      console.log('Delete button identified in Ideas:', deleteBtn);
 
-        if (deleteBtn) {
-          const id = deleteBtn.dataset.id;
-          deleteIdea(id);
-        }
+      if (deleteBtn) {
+        console.log('Botón de eliminar Ideas pulsado para ID:', deleteBtn.dataset.id);
+        deleteIdea(deleteBtn.dataset.id);
+        return;
+      }
+      
+      if (checkbox) {
+        const id = checkbox.dataset.id;
+        toggleArchiveIdea(id);
+      }
 
-        if (saveBtn) {
+
+      if (saveBtn) {
         const id = saveBtn.dataset.id;
         const card = saveBtn.closest('.item-card');
         const textarea = card.querySelector('textarea');
@@ -967,9 +950,6 @@ import { collections, db } from "./firebase.js";
       if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea') && !e.target.closest('.item-text')) {
         const card = expandBtn.closest('.item-card');
         card.classList.toggle('expanded');
-      }
-      } catch (err) {
-        console.error('Error in Ideas click handler:', err);
       }
     });
 
@@ -1050,7 +1030,7 @@ import { collections, db } from "./firebase.js";
       if (action === 'delete') {
         try {
           await deleteDoc(doc(db, 'ideas', id));
-          showToast('Idea eliminada', 'success');
+          showToast('Idea eliminada', 'info');
         } catch (err) {
           console.error('Error deleting idea:', err);
           showToast('Error al eliminar', 'error');
@@ -1145,18 +1125,18 @@ import { collections, db } from "./firebase.js";
               </div>
             </div>
             <div class="task-edit-fields">
-              <div class="task-content-col">
-                <div class="task-row-edit">
-                  <select class="priority-select" data-id="${tarea.id}">
-                    ${PRIORIDADES.map(p => `<option value="${p}" ${tarea.prioridad === p ? 'selected' : ''}>${getPriorityLabel(p)}</option>`).join('')}
-                  </select>
-                  <div class="studio-date-wrapper">
-                    <input type="date" class="studio-date-input" value="${fechaLimiteValue}">
-                  </div>
+              <div class="task-row-edit">
+                <select class="priority-select" data-id="${tarea.id}">
+                  ${PRIORIDADES.map(p => `<option value="${p}" ${tarea.prioridad === p ? 'selected' : ''}>${getPriorityLabel(p)}</option>`).join('')}
+                </select>
+                <div class="studio-date-wrapper">
+                  <input type="date" class="studio-date-input" value="${fechaLimiteValue}">
                 </div>
+              </div>
+              <div class="task-notes-wrapper">
                 <textarea placeholder="Notas adicionales...">${tarea.notas || ''}</textarea>
               </div>
-              <div class="task-actions-col">
+              <div class="task-actions-row">
                 <button class="save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
                   ${saveIcon}
                 </button>
@@ -1175,7 +1155,6 @@ import { collections, db } from "./firebase.js";
   }
 
   function attachTareasEvents() {
-    console.log('attachTareasEvents called');
     const input = document.getElementById('tarea-input');
     const addBtn = document.getElementById('tarea-input-btn');
     const list = document.getElementById('tareas-list');
@@ -1215,31 +1194,28 @@ import { collections, db } from "./firebase.js";
     });
 
     list.addEventListener('click', async (e) => {
-      try {
-        console.log('Tareas list click:', e.target);
-        const checkbox = e.target.closest('.checkbox');
-        const deleteBtn = e.target.closest('.delete-btn');
-        console.log('Tareas deleteBtn:', deleteBtn);
-        const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
-        const saveBtn = e.target.closest('.save-task-btn');
+      const checkbox = e.target.closest('.checkbox');
+      const deleteBtn = e.target.closest('.delete-btn');
+      const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
+      const saveBtn = e.target.closest('.save-task-btn');
 
-        if (checkbox) {
-          const id = checkbox.dataset.id;
-          const tarea = appState.tareas.items.find(i => i.id === id);
-          if (tarea) {
-            try {
-              await updateDoc(doc(db, 'tareas', id), {
-                completado: !tarea.completado
-              });
-              showToast(!tarea.completado ? 'Tarea completada' : 'Tarea pendiente', !tarea.completado ? 'success' : 'revert');
-            } catch (err) {
-              console.error('Error updating task:', err);
-              showToast('Error al actualizar', 'error');
-            }
+      if (checkbox) {
+        const id = checkbox.dataset.id;
+        const tarea = appState.tareas.items.find(i => i.id === id);
+        if (tarea) {
+          try {
+            await updateDoc(doc(db, 'tareas', id), {
+              completado: !tarea.completado
+            });
+            showToast(!tarea.completado ? 'Tarea completada' : 'Tarea pendiente', !tarea.completado ? 'success' : 'revert');
+          } catch (err) {
+            console.error('Error updating task:', err);
+            showToast('Error al actualizar', 'error');
           }
         }
+      }
 
-        if (deleteBtn) {
+      if (deleteBtn) {
         const id = deleteBtn.dataset.id;
         showModal('Eliminar tarea', '<p>¿Estás seguro de que quieres eliminar esta tarea?</p>', [
           { label: 'Cancelar', action: 'cancel', primary: false },
@@ -1248,7 +1224,7 @@ import { collections, db } from "./firebase.js";
           if (action === 'delete') {
             try {
               await deleteDoc(doc(db, 'tareas', id));
-              showToast('Tarea eliminada', 'success');
+              showToast('Tarea eliminada', 'info');
             } catch (err) {
               console.error('Error deleting task:', err);
               showToast('Error al eliminar', 'error');
@@ -1281,17 +1257,7 @@ import { collections, db } from "./firebase.js";
           showToast('Error al guardar notas', 'error');
         }
       }
-      } catch (err) {
-        console.error('Error in Tareas click handler:', err);
-      }
     });
-
-    list.addEventListener('mousedown', (e) => handlePressStart(e, 'tareas'));
-    list.addEventListener('touchstart', (e) => handlePressStart(e, 'tareas'));
-    list.addEventListener('mouseup', (e) => handlePressEnd(e));
-    list.addEventListener('mouseleave', (e) => handlePressEnd(e));
-    list.addEventListener('touchend', (e) => handlePressEnd(e));
-    list.addEventListener('touchmove', (e) => handlePressEnd(e));
 
     list.addEventListener('change', async (e) => {
       const prioritySelect = e.target.closest('.priority-select');
@@ -1809,35 +1775,11 @@ import { collections, db } from "./firebase.js";
       try {
         await deleteDoc(doc(db, category, itemId));
         toast.remove();
-        showToast('Captura eliminada', 'success');
+        showToast('Captura eliminada', 'info');
       } catch (err) {
         console.error('Error undoing capture:', err);
         showToast('Error al deshacer', 'error');
       }
-    });
-
-    const changeBtn = toast.querySelector('[data-action="change"]');
-    const selector = toast.querySelector('.category-selector');
-    
-    changeBtn.addEventListener('click', () => {
-      selector.style.display = selector.style.display === 'none' ? 'flex' : 'none';
-    });
-
-    selector.querySelectorAll('.cat-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const toCat = btn.dataset.cat;
-        moveItem(itemId, category, toCat);
-        toast.remove();
-      });
-    });
-
-    setTimeout(() => {
-      if (toast.parentElement) {
-        toast.style.animation = 'toastOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-        setTimeout(() => toast.remove(), 400);
-      }
-    }, 8000); // Increased timeout to give time for manual change
-  }
 
   function init() {
     onAuthStateChanged(auth, (user) => {
