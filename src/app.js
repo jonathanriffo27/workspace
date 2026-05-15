@@ -656,6 +656,7 @@ import { collections, db } from "./firebase.js";
         });
         input.value = '';
         showToast('Producto añadido', 'success');
+        switchTab('compras');
       } catch (err) {
         console.error('Error adding item:', err);
         showToast('Error al añadir producto', 'error');
@@ -916,6 +917,7 @@ import { collections, db } from "./firebase.js";
         });
         titleInput.value = '';
         showToast('Idea capturada', 'success');
+        switchTab('ideas');
       } catch (err) {
         console.error('Error adding idea:', err);
         showToast('Error al capturar idea', 'error');
@@ -1197,6 +1199,7 @@ import { collections, db } from "./firebase.js";
         });
         input.value = '';
         showToast('Tarea añadida', 'success');
+        switchTab('tareas');
       } catch (err) {
         console.error('Error adding task:', err);
         showToast('Error al añadir tarea', 'error');
@@ -1416,6 +1419,13 @@ import { collections, db } from "./firebase.js";
     if (tab === 'compras') renderComprasSection();
     else if (tab === 'ideas') renderIdeasSection();
     else if (tab === 'tareas') renderTareasSection();
+
+    requestAnimationFrame(() => {
+      const section = document.getElementById(`${tab}-section`);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
   }
 
   // --- Voice Capture Logic ---
@@ -1564,8 +1574,59 @@ import { collections, db } from "./firebase.js";
     window.addEventListener('touchend', handleEnd);
   }
 
+  function hasMultipleItems(text) {
+    const separators = [' y ', ' e ', ', ', ' más ', ' con ', ' además de '];
+    const lower = text.toLowerCase();
+    return separators.some(s => text.includes(s));
+  }
+
+  function splitIntoItems(text) {
+    let items = [text];
+    const separators = [
+      { pattern: /\s+y\s+/g, split: true },
+      { pattern: /\s+e\s+/g, split: true },
+      { pattern: /,\s*/g, split: true },
+      { pattern: /\s+más\s+/g, split: true },
+      { pattern: /\s+con\s+/g, split: true },
+      { pattern: /\s+además\s+de\s+/g, split: true }
+    ];
+
+    for (const sep of separators) {
+      const newItems = [];
+      for (const item of items) {
+        const parts = item.split(sep.pattern);
+        newItems.push(...parts);
+      }
+      items = newItems.filter(i => i.trim().length > 0);
+    }
+
+    return items.map(item => item.trim()).filter(i => i.length > 0);
+  }
+
+  function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   async function categorizeWithLLM(text) {
     const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+
+    if (hasMultipleItems(text)) {
+      const items = splitIntoItems(text);
+      if (items.length > 1) {
+        const results = [];
+        for (const item of items) {
+          const result = await categorizeSingleItem(item, API_KEY);
+          results.push(result);
+        }
+        return { items: results };
+      }
+    }
+
+    return await categorizeSingleItem(text, API_KEY);
+  }
+
+  async function categorizeSingleItem(text, API_KEY) {
     if (!API_KEY) {
       console.warn('OpenRouter API Key missing. Falling back to heuristics.');
       return categorizeInputHeuristic(text);
@@ -1602,6 +1663,7 @@ import { collections, db } from "./firebase.js";
               - Para COMPRAS: Quita el verbo (ej: "Comprar leche" -> "Leche").
               - Para TAREAS: MANTÉN el verbo de acción principal pero quita el comando (ej: "Recordar jugar a la pelota con amigos" -> "Jugar a la pelota").
               - Corrige errores menores de plural/singular o concordancia.
+              - IMPORTANTE: Poner la primera letra en mayúscula.
               
               RESPUESTA:
               - ÚNICAMENTE JSON: {"module": "compras|tareas|ideas", "subcat": "supermercado|farmacia|internet|otros", "title": "..."}`
@@ -1614,7 +1676,9 @@ import { collections, db } from "./firebase.js";
       const data = await response.json();
       const content = data.choices[0].message.content;
       const jsonMatch = content.match(/\{.*\}/s);
-      return JSON.parse(jsonMatch ? jsonMatch[0] : content);
+      const result = JSON.parse(jsonMatch ? jsonMatch[0] : content);
+      result.title = capitalizeFirstLetter(result.title);
+      return result;
     } catch (e) {
       console.error('LLM Categorization failed:', e);
       return categorizeInputHeuristic(text);
@@ -1670,50 +1734,62 @@ import { collections, db } from "./firebase.js";
     const statusEl = document.querySelector('.voice-status');
     const overlay = document.getElementById('voice-overlay');
     
-    // Cambiar a estado de análisis
     if (statusEl) statusEl.textContent = 'Analizando con IA...';
     overlay.classList.add('analyzing');
 
     const result = await categorizeWithLLM(text);
-    const { module, subcat, title } = result;
-    let docRef;
-    let message = '';
+    const items = result.items || [{ module: result.module, subcat: result.subcat, title: result.title }];
+    let addedCount = 0;
+    let mainModule = '';
 
     try {
-      if (module === 'compras') {
-        docRef = await addDoc(collections.compras, {
-          nombre: title,
-          categoria: subcat || 'supermercado',
-          completado: false,
-          creadoEn: serverTimestamp(),
-          userId: appState.userId
-        });
-        message = `Añadido a Compras (${getCategoryLabel(subcat)})`;
-      } else if (module === 'tareas') {
-        docRef = await addDoc(collections.tareas, {
-          titulo: title,
-          prioridad: subcat || 'media',
-          fechaLimite: null,
-          notas: '',
-          completado: false,
-          creadoEn: serverTimestamp(),
-          userId: appState.userId
-        });
-        message = 'Añadido a Tareas';
+      for (const { module, subcat, title } of items) {
+        if (!title) continue;
+        mainModule = module;
+        
+        if (module === 'compras') {
+          await addDoc(collections.compras, {
+            nombre: title,
+            categoria: subcat || 'supermercado',
+            completado: false,
+            creadoEn: serverTimestamp(),
+            userId: appState.userId
+          });
+        } else if (module === 'tareas') {
+          await addDoc(collections.tareas, {
+            titulo: title,
+            prioridad: subcat || 'media',
+            fechaLimite: null,
+            notas: '',
+            completado: false,
+            creadoEn: serverTimestamp(),
+            userId: appState.userId
+          });
+        } else {
+          await addDoc(collections.ideas, {
+            titulo: title,
+            notas: '',
+            archivada: false,
+            creadoEn: serverTimestamp(),
+            userId: appState.userId
+          });
+        }
+        addedCount++;
+      }
+
+      let message = '';
+      if (addedCount === 1) {
+        if (mainModule === 'compras') message = `Añadido a Compras (${getCategoryLabel(items[0].subcat)})`;
+        else if (mainModule === 'tareas') message = 'Añadido a Tareas';
+        else message = 'Capturado como Idea';
       } else {
-        docRef = await addDoc(collections.ideas, {
-          titulo: title,
-          notas: '',
-          archivada: false,
-          creadoEn: serverTimestamp(),
-          userId: appState.userId
-        });
-        message = 'Capturado como Idea';
+        message = `${addedCount} elementos añadidos`;
       }
 
       overlay.classList.remove('analyzing');
       overlay.classList.remove('active');
-      showVoiceToast(message, text, module, docRef.id);
+      showVoiceToast(message, text, mainModule, null);
+      switchTab(mainModule);
     } catch (err) {
       console.error('Error processing voice capture:', err);
       showToast('Error al guardar captura de voz', 'error');

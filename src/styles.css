@@ -459,8 +459,9 @@ body::after {
 .item-card.task .task-meta-expand-wrapper {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 7px;
   margin-left: auto;
+  margin-right: 5px;
   flex-shrink: 0;
 }
 
