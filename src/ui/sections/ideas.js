@@ -78,23 +78,25 @@ export function renderIdeasSection() {
         <div class="item-content">
           <div class="item-row">
             <span class="item-text">${idea.titulo}</span>
-            <button class="expand-indicator-btn" style="background:transparent; border:none; color:var(--text-tertiary); display:flex; padding:0;">
-              ${expandIcon}
-            </button>
+            <div class="idea-meta-actions" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+              <button class="delete-btn" data-id="${idea.id}">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="expand-indicator-btn" style="background:transparent; border:none; color:var(--text-tertiary); display:flex; padding:0;">
+                ${expandIcon}
+              </button>
+            </div>
           </div>
           <div class="idea-notes-wrapper">
             <textarea data-id="${idea.id}" placeholder="Desarrolla tu idea aquí...">${idea.notes || idea.notas || ''}</textarea>
-          </div>
-        </div>
-        <div class="item-actions">
-          <button class="delete-btn" data-id="${idea.id}">
-            <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button class="save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
-            ${saveIcon}
-          </button>
-          <div class="sync-indicator">
-            <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+            <div class="idea-edit-actions" style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+              <button class="save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
+                ${saveIcon}
+              </button>
+              <div class="sync-indicator">
+                <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+            </div>
           </div>
         </div>
       `;

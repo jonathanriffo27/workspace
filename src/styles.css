@@ -173,6 +173,9 @@ body::after {
 .nav-item.active { color: var(--accent-primary); }
 .nav-icon { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .nav-item.active .nav-icon { transform: translateY(-2px) scale(1.1); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+.nav-item[data-tab="ideas"] .nav-icon { width: 28px; height: 28px; margin-bottom: 1px; }
+.nav-item[data-tab="ideas"] .nav-label { margin-top: -3px; }
+.nav-item[data-tab="ideas"] { margin-top: -3px; }
 .nav-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
 
 /* Stats & Input */
@@ -844,7 +847,7 @@ body::after {
 .voice-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 10, 0.85);
+  background: radial-gradient(circle at bottom center, rgba(15, 15, 15, 0.94), rgba(5, 5, 5, 0.98));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: 2000;
@@ -853,7 +856,59 @@ body::after {
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pixel-glow {
+  position: absolute;
+  bottom: calc(2px + env(safe-area-inset-bottom, 0px)); /* Centered on the button */
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  transform: translate(-50%, 0) scale(0);
+  background: radial-gradient(circle, 
+    #fff 0%, 
+    var(--accent-primary) 20%, 
+    rgba(245, 158, 11, 0.4) 50%, 
+    transparent 75%
+  );
+  border-radius: 50%;
+  filter: blur(8px);
+  opacity: 0;
+  z-index: -1;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Wave Effect (Android 16 style) */
+.pixel-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 40%, rgba(255, 255, 255, 0.8) 50%, transparent 60%);
+  transform: scale(0);
+  opacity: 0;
+}
+
+.voice-overlay.active .pixel-glow {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(2.8);
+  animation: pixel-pulse 2.5s infinite alternate ease-in-out 0.4s;
+}
+
+.voice-overlay.active .pixel-glow::after {
+  animation: pixel-wave 0.8s cubic-bezier(0.1, 0.5, 0.2, 1) forwards;
+}
+
+@keyframes pixel-wave {
+  0% { transform: scale(0); opacity: 0; }
+  10% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(10); opacity: 0; }
+}
+
+@keyframes pixel-pulse {
+  from { transform: translate(-50%, 0) scale(2.6); opacity: 0.8; filter: blur(8px); }
+  to { transform: translate(-50%, 0) scale(3); opacity: 1; filter: blur(12px); }
 }
 
 .voice-overlay.active {
