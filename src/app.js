@@ -58,12 +58,14 @@ import { collections, db } from "./firebase.js";
     }
   }
 
-  const appState = {
+const appState = {
     activeTab: 'compras',
     user: null,
     userId: null,
     authLoading: true,
- compras: {
+    firestoreInitialized: false,
+    unsubscribes: [],
+    compras: {
       items: [],
       filters: []
     },
@@ -221,7 +223,9 @@ import { collections, db } from "./firebase.js";
       try {
         await signInWithPopup(auth, googleProvider);
       } catch (err) {
-        showToast('Error al iniciar con Google', 'error');
+        console.error('Google Auth Error:', err);
+        const msg = err.message || 'Error al iniciar con Google';
+        showToast(msg, 'error');
       }
     });
   }
@@ -269,6 +273,9 @@ import { collections, db } from "./firebase.js";
       const logoutBtn = header.querySelector('.logout-btn');
       logoutBtn.addEventListener('click', async () => {
         try {
+          appState.unsubscribes.forEach(fn => fn());
+          appState.unsubscribes = [];
+          appState.firestoreInitialized = false;
           await signOut(auth);
         } catch (err) {
           showToast('Error al cerrar sesión', 'error');
@@ -319,14 +326,23 @@ import { collections, db } from "./firebase.js";
   function initFirestoreSync() {
     if (!appState.userId) return;
 
+    if (appState.firestoreInitialized) {
+      console.log('Firestore sync already initialized, skipping...');
+      return;
+    }
+
+    appState.firestoreInitialized = true;
+
     const userId = appState.userId;
     console.log('Initializing Firestore Sync for user:', userId);
-    
-    // Attempt migration before setting up listeners
+
+    appState.unsubscribes.forEach(fn => fn());
+    appState.unsubscribes = [];
+
     migrateDataIfNecessary(userId);
 
     const qCompras = query(collections.compras, where("userId", "==", userId), orderBy("creadoEn", "desc"));
-    onSnapshot(qCompras, (snapshot) => {
+    appState.unsubscribes.push(onSnapshot(qCompras, (snapshot) => {
       console.log('Compras snapshot received, docs:', snapshot.size);
       appState.compras.items = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -340,10 +356,10 @@ import { collections, db } from "./firebase.js";
       if (err.message.includes('index')) {
         showToast('Error de base de datos: Falta un índice en Firestore.', 'error');
       }
-    });
+    }));
 
     const qIdeas = query(collections.ideas, where("userId", "==", userId), orderBy("creadoEn", "desc"));
-    onSnapshot(qIdeas, (snapshot) => {
+    appState.unsubscribes.push(onSnapshot(qIdeas, (snapshot) => {
       console.log('Ideas snapshot received, docs:', snapshot.size);
       appState.ideas.items = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -354,10 +370,10 @@ import { collections, db } from "./firebase.js";
       if (appState.activeTab === 'ideas') renderIdeasSection();
     }, (err) => {
       console.error('Error in Ideas onSnapshot:', err);
-    });
+    }));
 
     const qTareas = query(collections.tareas, where("userId", "==", userId), orderBy("creadoEn", "desc"));
-    onSnapshot(qTareas, (snapshot) => {
+    appState.unsubscribes.push(onSnapshot(qTareas, (snapshot) => {
       console.log('Tareas snapshot received, docs:', snapshot.size);
       appState.tareas.items = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -369,7 +385,7 @@ import { collections, db } from "./firebase.js";
       if (appState.activeTab === 'tareas') renderTareasSection();
     }, (err) => {
       console.error('Error in Tareas onSnapshot:', err);
-    });
+    }));
   }
 
   function initLocalStorage() {
@@ -2002,6 +2018,9 @@ RESPUESTA JSON:
         appState.compras.items = [];
         appState.ideas.items = [];
         appState.tareas.items = [];
+        appState.firestoreInitialized = false;
+        appState.unsubscribes.forEach(fn => fn());
+        appState.unsubscribes = [];
         const hash = window.location.hash.substring(1);
         const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'compras';
         switchTab(initialTab);
