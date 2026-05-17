@@ -779,6 +779,15 @@ const appState = {
           }
         };
 
+        // Global click listener to save when clicking outside
+        const handleOutsideClick = (e) => {
+          if (!titleSpan.contains(e.target)) {
+            document.removeEventListener('click', handleOutsideClick);
+            titleSpan.blur();
+          }
+        };
+        setTimeout(() => document.addEventListener('click', handleOutsideClick), 0);
+
         const range = document.createRange();
         const sel = window.getSelection();
         range.selectNodeContents(titleSpan);
@@ -790,10 +799,6 @@ const appState = {
 
     function handlePressEnd(e, type) {
       clearTimeout(pressTimer);
-      const titleSpan = e.target.closest('.item-text');
-      if (titleSpan && titleSpan.dataset.editing === 'true') {
-        saveTitle(titleSpan, type);
-      }
     }
 
     async function saveTitle(el, type) {
@@ -1000,6 +1005,22 @@ const appState = {
 
     list.addEventListener('click', async (e) => {
       try {
+        const editingElement = document.querySelector('.item-text.is-editing');
+        if (editingElement && !editingElement.contains(e.target)) {
+          e.preventDefault();
+          e.stopPropagation();
+          editingElement.blur();
+          return;
+        }
+
+        // Check if focus is now outside the editing element (fallback for mobile)
+        setTimeout(() => {
+          const stillEditing = document.querySelector('.item-text.is-editing');
+          if (stillEditing && document.activeElement !== stillEditing && !stillEditing.contains(document.activeElement)) {
+            stillEditing.blur();
+          }
+        }, 100);
+
         console.log('Ideas list click:', e.target);
         const checkbox = e.target.closest('.checkbox');
         const deleteBtn = e.target.closest('.delete-btn');
@@ -1079,6 +1100,15 @@ const appState = {
           }
         };
 
+        // Global pointerdown listener for mobile - more reliable than click
+        const handleOutsideClick = (e) => {
+          if (!titleSpan.contains(e.target)) {
+            document.removeEventListener('pointerdown', handleOutsideClick);
+            titleSpan.blur();
+          }
+        };
+        setTimeout(() => document.addEventListener('pointerdown', handleOutsideClick), 0);
+
         // Move cursor to end
         const range = document.createRange();
         const sel = window.getSelection();
@@ -1091,10 +1121,6 @@ const appState = {
 
     function handleLongPressEnd(e) {
       clearTimeout(pressTimer);
-      const titleSpan = e.target.closest('.item-text');
-      if (titleSpan && titleSpan.dataset.editing === 'true') {
-        saveTitle(titleSpan, 'ideas');
-      }
     }
 
     // saveTitle function is now shared and async, already updated in previous step
