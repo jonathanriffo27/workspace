@@ -552,6 +552,37 @@ const appState = {
     });
   }
 
+  async function saveTitle(el, type) {
+    el.contentEditable = false;
+    el.classList.remove('is-editing');
+    delete el.dataset.editing;
+    const newTitle = el.textContent.trim();
+    const card = el.closest('.item-card');
+    const id = card.dataset.id;
+
+    try {
+      if (type === 'compras') {
+        await updateDoc(doc(db, 'compras', id), {
+          nombre: newTitle
+        });
+        showToast('Título actualizado', 'success');
+      } else if (type === 'ideas') {
+        await updateDoc(doc(db, 'ideas', id), {
+          titulo: newTitle
+        });
+        showToast('Título actualizado', 'success');
+      } else if (type === 'tareas') {
+        await updateDoc(doc(db, 'tareas', id), {
+          titulo: newTitle
+        });
+        showToast('Título actualizado', 'success');
+      }
+    } catch (err) {
+      console.error('Error updating title:', err);
+      showToast('Error al actualizar título', 'error');
+    }
+  }
+
   function filterComprasItems(items, filters) {
     if (!filters || filters.length === 0) return items;
     return items.filter(item => filters.includes(item.categoria));
@@ -761,6 +792,9 @@ const appState = {
       if (!titleSpan) return;
       
       pressTimer = setTimeout(() => {
+        // Blur any currently editing element
+        document.querySelector('.item-text.is-editing')?.blur();
+
         titleSpan.contentEditable = true;
         titleSpan.classList.add('is-editing');
         titleSpan.dataset.editing = 'true';
@@ -799,32 +833,6 @@ const appState = {
 
     function handlePressEnd(e, type) {
       clearTimeout(pressTimer);
-    }
-
-    async function saveTitle(el, type) {
-      el.contentEditable = false;
-      el.classList.remove('is-editing');
-      delete el.dataset.editing;
-      const newTitle = el.textContent.trim();
-      const card = el.closest('.item-card');
-      const id = card.dataset.id;
-
-      try {
-        if (type === 'compras') {
-          await updateDoc(doc(db, 'compras', id), {
-            nombre: newTitle
-          });
-          showToast('Título actualizado', 'success');
-        } else if (type === 'ideas') {
-          await updateDoc(doc(db, 'ideas', id), {
-            titulo: newTitle
-          });
-          showToast('Título actualizado', 'success');
-        }
-      } catch (err) {
-        console.error('Error updating title:', err);
-        showToast('Error al actualizar título', 'error');
-      }
     }
 
     list.addEventListener('mousedown', (e) => handleCategoryPressStart(e));
@@ -1080,6 +1088,9 @@ const appState = {
       if (!titleSpan) return;
       
       pressTimer = setTimeout(() => {
+        // Blur any currently editing element
+        document.querySelector('.item-text.is-editing')?.blur();
+
         titleSpan.contentEditable = true;
         titleSpan.classList.add('is-editing');
         titleSpan.dataset.editing = 'true';
@@ -1456,6 +1467,9 @@ const appState = {
     });
 
     function startEditingTarea(titleSpan) {
+      // Blur any currently editing element
+      document.querySelector('.item-text.is-editing')?.blur();
+
       titleSpan.contentEditable = true;
       titleSpan.classList.add('is-editing');
       titleSpan.dataset.editing = 'true';
@@ -1470,7 +1484,7 @@ const appState = {
 
       titleSpan.onblur = () => {
         if (titleSpan.dataset.editing === 'true') {
-          finishEditingTarea(titleSpan);
+          saveTitle(titleSpan, 'tareas');
         }
       };
 
@@ -1481,28 +1495,12 @@ const appState = {
       sel.removeAllRanges();
       sel.addRange(range);
     }
-
-    async function finishEditingTarea(titleSpan) {
-      titleSpan.contentEditable = false;
-      titleSpan.classList.remove('is-editing');
-      delete titleSpan.dataset.editing;
-      const newTitle = titleSpan.textContent.trim();
-      const card = titleSpan.closest('.item-card');
-      const id = card.dataset.id;
-
-      try {
-        await updateDoc(doc(db, 'tareas', id), {
-          titulo: newTitle
-        });
-        showToast('Título actualizado', 'success');
-      } catch (err) {
-        console.error('Error updating task title:', err);
-        showToast('Error al actualizar título', 'error');
-      }
-    }
   }
 
   function switchTab(tab) {
+    // Blur any active edit before switching
+    document.querySelector('.item-text.is-editing')?.blur();
+
     appState.activeTab = tab;
 
     document.querySelectorAll('.nav-item').forEach(item => {
