@@ -953,7 +953,7 @@ body::after {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 24px;
-  max-width: 320px;
+  max-width: 360px;
   width: 90%;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
@@ -974,18 +974,20 @@ body::after {
 
 .modal-actions {
   display: flex;
-  gap: 12px;
-  justify-content: flex-end;
+  gap: 8px;
+  justify-content: center;
 }
 
 .modal-btn {
-  padding: 10px 20px;
+  padding: 10px 16px;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .modal-btn.secondary {

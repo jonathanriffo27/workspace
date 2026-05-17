@@ -620,7 +620,7 @@ import { collections, db } from "./firebase.js";
           <div class="item-content">
             <div class="item-row">
               <span class="item-text">${item.nombre}</span>
-              <span class="badge badge-categoria">${getCategoryLabel(item.categoria)}</span>
+              <span class="badge badge-categoria" data-id="${item.id}" data-category="${item.categoria}" title="Mantén presionado para cambiar">${getCategoryLabel(item.categoria)}</span>
             </div>
           </div>
           <button class="delete-btn" data-id="${item.id}">
@@ -805,6 +805,58 @@ import { collections, db } from "./firebase.js";
         showToast('Error al actualizar título', 'error');
       }
     }
+
+    list.addEventListener('mousedown', (e) => handleCategoryPressStart(e));
+    list.addEventListener('touchstart', (e) => handleCategoryPressStart(e), { passive: true });
+    list.addEventListener('mouseup', (e) => handleCategoryPressEnd(e));
+    list.addEventListener('mouseleave', (e) => handleCategoryPressEnd(e));
+    list.addEventListener('touchend', (e) => handleCategoryPressEnd(e));
+    list.addEventListener('touchmove', (e) => handleCategoryPressEnd(e));
+
+    let categoryPressTimer;
+    function handleCategoryPressStart(e) {
+      const badge = e.target.closest('.badge-categoria');
+      if (!badge) return;
+
+      categoryPressTimer = setTimeout(() => {
+        const id = badge.dataset.id;
+        const currentCategory = badge.dataset.category;
+        changeCategory(id, currentCategory);
+      }, 600);
+    }
+
+    function handleCategoryPressEnd(e) {
+      clearTimeout(categoryPressTimer);
+    }
+  }
+
+  async function changeCategory(id, currentCategory) {
+    const categories = [
+      { value: 'supermercado', label: 'Supermercado' },
+      { value: 'internet', label: 'Internet' },
+      { value: 'farmacia', label: 'Farmacia' },
+      { value: 'otros', label: 'Otros' }
+    ];
+
+    const availableCategories = categories.filter(cat => cat.value !== currentCategory);
+
+    const buttons = availableCategories.map(cat => ({
+      label: cat.label,
+      action: cat.value,
+      primary: false
+    }));
+
+    showModal('Cambiar categoría', '', buttons, async (action) => {
+      if (action && action !== 'cancel') {
+        try {
+          await updateDoc(doc(db, 'compras', id), { categoria: action });
+          showToast('Categoría actualizada', 'success');
+        } catch (err) {
+          console.error('Error updating category:', err);
+          showToast('Error al actualizar categoría', 'error');
+        }
+      }
+    });
   }
 
   function renderIdeasSection() {
