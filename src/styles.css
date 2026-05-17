@@ -472,6 +472,7 @@ body::after {
 
 .item-card.task .delete-btn {
   flex-shrink: 0;
+  margin-left: 5px;
 }
 
 .item-card.task .task-actions-row {
