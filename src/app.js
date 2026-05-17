@@ -333,6 +333,7 @@ import { collections, db } from "./firebase.js";
         ...doc.data(),
         creadoEn: doc.data().creadoEn?.toMillis() || Date.now()
       }));
+      saveToStorage(STORAGE_KEYS.compras, appState.compras.items);
       if (appState.activeTab === 'compras') renderComprasSection();
     }, (err) => {
       console.error('Error in Compras onSnapshot:', err);
@@ -349,6 +350,7 @@ import { collections, db } from "./firebase.js";
         ...doc.data(),
         creadoEn: doc.data().creadoEn?.toMillis() || Date.now()
       }));
+      saveToStorage(STORAGE_KEYS.ideas, appState.ideas.items);
       if (appState.activeTab === 'ideas') renderIdeasSection();
     }, (err) => {
       console.error('Error in Ideas onSnapshot:', err);
@@ -363,6 +365,7 @@ import { collections, db } from "./firebase.js";
         creadoEn: doc.data().creadoEn?.toMillis() || Date.now(),
         fechaLimite: doc.data().fechaLimite
       }));
+      saveToStorage(STORAGE_KEYS.tareas, appState.tareas.items);
       if (appState.activeTab === 'tareas') renderTareasSection();
     }, (err) => {
       console.error('Error in Tareas onSnapshot:', err);
@@ -1537,19 +1540,34 @@ import { collections, db } from "./firebase.js";
       }
     };
 
+    let processingToast = null;
+
     recognition.onend = () => {
       const text = transcriptEl.dataset.hasContent === 'true' ? transcriptEl.textContent.trim() : '';
       console.log('Recognition ended. Final text processed:', text);
-      
-      if (text && text.length > 1) {
-        processVoiceCapture(text);
-      } else {
-        console.log('No valid text detected, skipping capture.');
-      }
-      
+
       overlay.classList.remove('active');
       ideasNav.classList.remove('recording');
       delete transcriptEl.dataset.hasContent;
+
+      if (text && text.length > 1) {
+        processingToast = document.createElement('div');
+        processingToast.className = 'toast info';
+        processingToast.innerHTML = `
+          <span class="toast-icon"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" style="animation: spin 0.8s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></span>
+          <span class="toast-message">Analizando voz...</span>
+        `;
+        document.getElementById('toast-container').appendChild(processingToast);
+
+        processVoiceCapture(text, () => {
+          if (processingToast) {
+            processingToast.remove();
+            processingToast = null;
+          }
+        });
+      } else {
+        console.log('No valid text detected, skipping capture.');
+      }
     };
 
     const handleStart = (e) => {
@@ -1608,25 +1626,9 @@ import { collections, db } from "./firebase.js";
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  async function categorizeWithLLM(text) {
+async function categorizeWithLLM(text) {
     const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
-    if (hasMultipleItems(text)) {
-      const items = splitIntoItems(text);
-      if (items.length > 1) {
-        const results = [];
-        for (const item of items) {
-          const result = await categorizeSingleItem(item, API_KEY);
-          results.push(result);
-        }
-        return { items: results };
-      }
-    }
-
-    return await categorizeSingleItem(text, API_KEY);
-  }
-
-  async function categorizeSingleItem(text, API_KEY) {
     if (!API_KEY) {
       console.warn('OpenRouter API Key missing. Falling back to heuristics.');
       return categorizeInputHeuristic(text);
@@ -1646,27 +1648,21 @@ import { collections, db } from "./firebase.js";
           messages: [
             {
               role: "system",
-              content: `Eres un asistente de productividad experto. Clasifica la entrada en: 'compras', 'tareas' o 'ideas'. 
-              
-              REGLAS DE MÓDULO:
-              1. 'compras': Adquisición de bienes. Elige subcategoría: 
-                 - 'supermercado': Alimentos, limpieza hogar, artículos generales.
-                 - 'farmacia': Salud, higiene personal, medicamentos.
-                 - 'internet': Electrónica, tecnología, software, viajes, servicios digitales.
-                 - 'otros': Vehículos, muebles, otros.
-              2. 'tareas': Acciones, compromisos, recordatorios.
-              3. 'ideas': Notas, reflexiones, proyectos futuros.
-              
-              LIMPIEZA DE TÍTULO:
-              - Crea un título conciso y elegante.
-              - NO incluyas frases de relleno como "con mis amigos", "por favor" o "un rato".
-              - Para COMPRAS: Quita el verbo (ej: "Comprar leche" -> "Leche").
-              - Para TAREAS: MANTÉN el verbo de acción principal pero quita el comando (ej: "Recordar jugar a la pelota con amigos" -> "Jugar a la pelota").
-              - Corrige errores menores de plural/singular o concordancia.
-              - IMPORTANTE: Poner la primera letra en mayúscula.
-              
-              RESPUESTA:
-              - ÚNICAMENTE JSON: {"module": "compras|tareas|ideas", "subcat": "supermercado|farmacia|internet|otros", "title": "..."}`
+              content: `Eres un asistente de compras. Analiza la frase del usuario.
+
+REGLAS:
+1. Cada producto separado por "y", "," o espacio es un ITEM diferente
+2. "pan azúcar y café" = 3 items: Pan, Azúcar, Café
+3. "leche pan huevos" = 3 items: Leche, Pan, Huevos
+4. "comprar leche" = 1 item: Leche
+5. Quita palabras como "comprar", "tengo que", "necesito"
+6. Primera letra en mayúscula
+
+CATEGORÍAS: supermercado (alimentos), farmacia, internet, otros
+
+RESPUESTA JSON:
+- varios items: {"items": [{"module": "compras", "subcat": "supermercado", "title": "Pan"}, ...]}
+- un item: {"module": "compras", "subcat": "supermercado", "title": "Leche"}`
             },
             { role: "user", content: text }
           ]
@@ -1675,9 +1671,37 @@ import { collections, db } from "./firebase.js";
 
       const data = await response.json();
       const content = data.choices[0].message.content;
+
       const jsonMatch = content.match(/\{.*\}/s);
-      const result = JSON.parse(jsonMatch ? jsonMatch[0] : content);
-      result.title = capitalizeFirstLetter(result.title);
+      if (!jsonMatch) {
+        return categorizeInputHeuristic(text);
+      }
+
+      const result = JSON.parse(jsonMatch[0]);
+
+      const normalizeSubcat = (subcat) => {
+        if (!subcat) return 'supermercado';
+        const valid = ['supermercado', 'farmacia', 'internet', 'otros'];
+        if (valid.includes(subcat.toLowerCase())) return subcat.toLowerCase();
+        if (['alimento', 'alimentos', 'comida', 'hogar'].includes(subcat.toLowerCase())) return 'supermercado';
+        return 'supermercado';
+      };
+
+      if (result.items && Array.isArray(result.items) && result.items.length > 0) {
+        result.items = result.items.map(item => ({
+          ...item,
+          module: item.module || 'compras',
+          subcat: normalizeSubcat(item.subcat),
+          title: item.title ? capitalizeFirstLetter(item.title) : 'Item'
+        }));
+      } else if (result.title) {
+        result.module = result.module || 'compras';
+        result.subcat = normalizeSubcat(result.subcat);
+        result.title = capitalizeFirstLetter(result.title);
+      } else {
+        return categorizeInputHeuristic(text);
+      }
+
       return result;
     } catch (e) {
       console.error('LLM Categorization failed:', e);
@@ -1730,12 +1754,12 @@ import { collections, db } from "./firebase.js";
     return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   }
 
-  async function processVoiceCapture(text) {
+  async function processVoiceCapture(text, onComplete) {
     const statusEl = document.querySelector('.voice-status');
     const overlay = document.getElementById('voice-overlay');
-    
+
     if (statusEl) statusEl.textContent = 'Analizando con IA...';
-    overlay.classList.add('analyzing');
+    if (overlay) overlay.classList.add('analyzing');
 
     const result = await categorizeWithLLM(text);
     const items = result.items || [{ module: result.module, subcat: result.subcat, title: result.title }];
@@ -1743,58 +1767,48 @@ import { collections, db } from "./firebase.js";
     let mainModule = '';
 
     try {
-      for (const { module, subcat, title } of items) {
-        if (!title) continue;
-        mainModule = module;
-        
-        if (module === 'compras') {
-          await addDoc(collections.compras, {
-            nombre: title,
-            categoria: subcat || 'supermercado',
-            completado: false,
-            creadoEn: serverTimestamp(),
-            userId: appState.userId
-          });
-        } else if (module === 'tareas') {
-          await addDoc(collections.tareas, {
-            titulo: title,
-            prioridad: subcat || 'media',
-            fechaLimite: null,
-            notas: '',
-            completado: false,
-            creadoEn: serverTimestamp(),
-            userId: appState.userId
-          });
-        } else {
-          await addDoc(collections.ideas, {
-            titulo: title,
-            notas: '',
-            archivada: false,
-            creadoEn: serverTimestamp(),
-            userId: appState.userId
-          });
-        }
-        addedCount++;
+      const validItems = items.filter(item => item.title);
+      if (validItems.length > 0) {
+        mainModule = validItems[0].module;
       }
+
+      const writePromises = validItems.map(({ module, subcat, title }) => {
+        if (module === 'compras') {
+          return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        } else if (module === 'tareas') {
+          return addDoc(collections.tareas, { titulo: title, prioridad: subcat || 'media', fechaLimite: null, notas: '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        } else {
+          return addDoc(collections.ideas, { titulo: title, notas: '', archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        }
+      });
+
+      await Promise.all(writePromises);
+      addedCount = validItems.length;
 
       let message = '';
       if (addedCount === 1) {
-        if (mainModule === 'compras') message = `Añadido a Compras (${getCategoryLabel(items[0].subcat)})`;
+        if (mainModule === 'compras') message = `Añadido a Compras (${getCategoryLabel(validItems[0].subcat)})`;
         else if (mainModule === 'tareas') message = 'Añadido a Tareas';
         else message = 'Capturado como Idea';
       } else {
         message = `${addedCount} elementos añadidos`;
       }
 
-      overlay.classList.remove('analyzing');
-      overlay.classList.remove('active');
+      if (overlay) {
+        overlay.classList.remove('analyzing');
+        overlay.classList.remove('active');
+      }
       showVoiceToast(message, text, mainModule, null);
       switchTab(mainModule);
     } catch (err) {
       console.error('Error processing voice capture:', err);
       showToast('Error al guardar captura de voz', 'error');
-      overlay.classList.remove('analyzing');
-      overlay.classList.remove('active');
+      if (overlay) {
+        overlay.classList.remove('analyzing');
+        overlay.classList.remove('active');
+      }
+    } finally {
+      if (onComplete) onComplete();
     }
   }
 
@@ -1924,11 +1938,12 @@ import { collections, db } from "./firebase.js";
       if (user) {
         hideLoginScreen();
         updateHeaderForUser(user);
-        initFirestoreSync();
-        initVoiceCapture();
+        initLocalStorage();
         const hash = window.location.hash.substring(1);
         const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'compras';
         switchTab(initialTab);
+        initFirestoreSync();
+        initVoiceCapture();
       } else {
         showLoginScreen();
         updateHeaderForUser(null);
