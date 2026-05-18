@@ -7,6 +7,7 @@ import {
 import { db, collections } from "../firebase.js";
 import { appState } from "../store.js";
 import { showToast } from "../ui/components/toast.js";
+import { capitalizeFirstLetter } from "../utils/formatting.js";
 
 export async function updateTitle(id, type, newTitle) {
   try {
@@ -49,8 +50,17 @@ export async function deleteItem(id, type) {
 
 export async function addItem(type, data) {
   try {
+    const processedData = { ...data };
+    
+    if (processedData.nombre) {
+      processedData.nombre = capitalizeFirstLetter(processedData.nombre);
+    }
+    if (processedData.titulo) {
+      processedData.titulo = capitalizeFirstLetter(processedData.titulo);
+    }
+
     await addDoc(collections[type], {
-      ...data,
+      ...processedData,
       creadoEn: new Date(),
       userId: appState.userId
     });

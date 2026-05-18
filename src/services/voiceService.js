@@ -1,17 +1,13 @@
 import { 
   addDoc, 
-  deleteDoc, 
-  doc, 
   serverTimestamp 
 } from "firebase/firestore";
-import { collections, db } from "../firebase.js";
+import { collections } from "../firebase.js";
 import { appState } from "../store.js";
 import { showToast } from "../ui/components/toast.js";
 import { switchTab } from "../ui/navigation.js";
 import { 
-  capitalizeFirstLetter, 
   cleanVoiceText, 
-  getCategoryLabel,
   splitIntoItems,
   hasMultipleItems
 } from "../utils/formatting.js";
@@ -122,34 +118,65 @@ async function processVoiceCapture(text) {
 
   try {
     const result = await categorizeWithLLM(text);
+    console.log('[DEBUG VOICE] LLM result:', JSON.stringify(result));
 
     const module = result.category || result.module || 'ideas';
 
     let itemsRaw = result.items || result.titles || result.products || result.elements;
+    console.log('[DEBUG VOICE] itemsRaw before normalization:', JSON.stringify(itemsRaw));
 
     if (!Array.isArray(itemsRaw) || itemsRaw.length === 0) {
       const separatedItems = splitIntoItems(text);
+      console.log('[DEBUG VOICE] Using splitIntoItems (empty or invalid):', separatedItems);
       itemsRaw = separatedItems;
     } else if (itemsRaw.length === 1 && typeof itemsRaw[0] === 'string' && hasMultipleItems(itemsRaw[0])) {
       const separatedItems = splitIntoItems(itemsRaw[0]);
+      console.log('[DEBUG VOICE] Single item with separators, splitting:', separatedItems);
       itemsRaw = separatedItems;
     }
 
+    const getDefaultSubcat = (mod) => {
+      if (mod === 'compras') return 'supermercado';
+      if (mod === 'tareas') return 'media';
+      return null;
+    };
+
     const items = itemsRaw.map(item => {
       const title = typeof item === 'string' ? item : (item.title || item.name || item.product || '');
+      let notes = typeof item === 'object' ? (item.notes || item.detail || item.description || '') : '';
       if (!title) return null;
-      return { module, subcat: result.subcat || 'supermercado', title: cleanVoiceText(title) };
+
+      // Para ideas: guardar texto original completo en notes y crear resumen
+      if (module === 'ideas') {
+        notes = text;
+        const words = title.split(' ').slice(0, 4).join(' ');
+        const summary = words.charAt(0).toUpperCase() + words.slice(1);
+        return { 
+          module, 
+          subcat: null, 
+          title: summary || 'Nueva idea',
+          notes: notes.trim()
+        };
+      }
+
+      return { 
+        module, 
+        subcat: result.subcat || getDefaultSubcat(module), 
+        title: cleanVoiceText(title),
+        notes: notes.trim() || ''
+      };
     }).filter(Boolean);
 
+    console.log('[DEBUG VOICE] items after normalization:', JSON.stringify(items));
     let mainModule = items[0]?.module || 'ideas';
 
-    const writePromises = items.filter(i => i.title).map(({ module, subcat, title }) => {
+    const writePromises = items.filter(i => i.title).map(({ module, subcat, title, notes }) => {
       if (module === 'compras') {
         return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else if (module === 'tareas') {
-        return addDoc(collections.tareas, { titulo: title, prioridad: subcat || 'media', fechaLimite: null, notas: '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        return addDoc(collections.tareas, { titulo: title, prioridad: subcat || 'media', fechaLimite: null, notas: notes || '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else {
-        return addDoc(collections.ideas, { titulo: title, notas: '', archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        return addDoc(collections.ideas, { titulo: title, notas: notes || '', archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });
       }
     });
 
@@ -195,7 +222,7 @@ async function categorizeWithLLM(text) {
       headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "openrouter/free",
-        messages: [{ role: "system", content: "You are a smart organizer. When user says multiple things (like 'lechuga, tomate y zanahoria' or 'comprar pan y leche'), split them into separate items. Return JSON with 'category' (compras/tareas/ideas) and 'items' (array of strings). Example: 'comprar leche pan y queso' -> {category: 'compras', items: ['Leche', 'Pan', 'Queso']}. Example: 'tengo que llamar a juan y terminar informe' -> {category: 'tareas', items: ['Llamar a Juan', 'Terminar informe']}" }, { role: "user", content: text }]
+        messages: [{ role: "system", content: "You are a smart task organizer. For compras: return array of strings. For tareas: split into title (action) and notes (detail). For ideas: ALWAYS put the FULL original text in notes, and create a short 3-5 word title as summary. Examples: 'comprar leche pan queso' -> {category: 'compras', items: ['Leche', 'Pan', 'Queso']}. 'tengo que llamar a juan para confirmar la reunion' -> {category: 'tareas', items: [{title: 'Llamar a Juan', notes: 'Confirmar la reunión'}]}. 'idea sobre usar formato HTML para que sea mas visual' -> {category: 'ideas', items: [{title: 'Formato HTML', notes: 'idea sobre usar formato HTML para que sea mas visual'}]}. 'hay una idea para el nuevo proyecto que quiero desarrollar' -> {category: 'ideas', items: [{title: 'Nuevo proyecto', notes: 'hay una idea para el nuevo proyecto que quiero desarrollar'}]}." }, { role: "user", content: text }]
       })
     });
     const data = await response.json();
@@ -207,6 +234,7 @@ async function categorizeWithLLM(text) {
 }
 
 function categorizeInputHeuristic(text) {
+  console.log('[DEBUG VOICE] categorizeInputHeuristic called with:', text);
   const t = text.toLowerCase();
   let module = 'ideas';
   let subcat = null;
@@ -219,12 +247,83 @@ function categorizeInputHeuristic(text) {
     subcat = 'media';
   }
 
-  // Usar splitIntoItems para separar múltiples items
-  const items = splitIntoItems(text);
-  if (items.length > 1) {
-    return { module, subcat, items };
+  const separatedItems = splitIntoItems(text);
+  console.log('[DEBUG VOICE] Heuristic splitIntoItems result:', separatedItems);
+  if (separatedItems.length > 1 && module !== 'compras') {
+    const result = { module, subcat, items: separatedItems.map(item => ({ title: cleanVoiceText(item), notes: '' })) };
+    console.log('[DEBUG VOICE] Heuristic returning (multiple items, not compras):', result);
+    return result;
   }
-  return { module, subcat, items: [cleanVoiceText(text)] };
+
+  if (separatedItems.length > 1) {
+    const result = { module, subcat, items: separatedItems.map(item => ({ title: cleanVoiceText(item), notes: '' })) };
+    console.log('[DEBUG VOICE] Heuristic returning (multiple items):', result);
+    return result;
+  }
+
+  // Para ideas: guardar texto completo en notes y crear resumen de 4 palabras
+  if (module === 'ideas') {
+    const words = text.split(' ').slice(0, 4).join(' ');
+    const summary = words.charAt(0).toUpperCase() + words.slice(1);
+    const result = { 
+      module, 
+      subcat: null, 
+      items: [{ 
+        title: summary || 'Nueva idea', 
+        notes: text
+      }] 
+    };
+    console.log('[DEBUG VOICE] Heuristic returning (ideas):', result);
+    return result;
+  }
+
+  if (module !== 'compras') {
+    const separators = [
+      { char: ',', maxPos: 40 },
+      { char: '.', maxPos: 50 },
+      { char: '-', maxPos: 40 },
+      { char: 'porque', maxPos: 45, isWord: true },
+      { char: 'para', maxPos: 35, isWord: true },
+      { char: 'sobre', maxPos: 35, isWord: true },
+      { char: 'ya que', maxPos: 40, isWord: true },
+      { char: 'pues', maxPos: 35, isWord: true }
+    ];
+    
+    let splitPos = -1;
+    let separator = '';
+    
+    for (const sep of separators) {
+      let pos;
+      if (sep.isWord) {
+        pos = text.toLowerCase().indexOf(' ' + sep.char + ' ');
+      } else {
+        pos = text.indexOf(sep.char);
+      }
+      
+      if (pos > 5 && pos < sep.maxPos) {
+        splitPos = pos;
+        separator = sep.char;
+        break;
+      }
+    }
+
+    if (splitPos > 0) {
+      const title = text.substring(0, splitPos).trim();
+      const notes = text.substring(splitPos + (separator.length > 1 ? separator.length + 2 : 1)).trim();
+      const result = { 
+        module, 
+        subcat, 
+        items: [{ title: cleanVoiceText(title), notes: cleanVoiceText(notes) }] 
+      };
+      console.log('[DEBUG VOICE] Heuristic returning (with separator "' + separator + '"):', result);
+      return result;
+    }
+    console.log('[DEBUG VOICE] Heuristic: No separator found for tasks/ideas');
+  }
+
+  const result = { module, subcat, items: [{ title: cleanVoiceText(text), notes: '' }] };
+  console.log('[DEBUG VOICE] Heuristic returning (fallback):', result);
+  return result;
 }
 
 function showVoiceToast(message, originalText, category, itemId) {
