@@ -2,8 +2,14 @@ import { appState, notify } from '../store.js';
 import { renderComprasSection } from './sections/compras.js';
 import { renderIdeasSection } from './sections/ideas.js';
 import { renderTareasSection } from './sections/tareas.js';
+import { clearSelection, isSelectionActive } from './components/multiSelect.js';
 
 export function switchTab(tab) {
+  // Clear selection from current tab if active
+  if (isSelectionActive(appState.activeTab)) {
+    clearSelection(appState.activeTab);
+  }
+
   // Blur any active edit before switching
   document.querySelector('.item-text.is-editing')?.blur();
 

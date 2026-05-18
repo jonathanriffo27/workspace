@@ -8,6 +8,7 @@ import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
 import { addItem, deleteItem, toggleCompleted, updateTitle } from '../../services/dataService.js';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase.js';
+import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
 
 let pressTimer = { value: null };
 let categoryPressTimer;
@@ -113,6 +114,14 @@ function attachComprasEvents() {
   list.addEventListener('click', async (e) => {
     const checkbox = e.target.closest('.checkbox');
     const deleteBtn = e.target.closest('.delete-btn');
+    const card = e.target.closest('.item-card');
+
+    // Handle click selection when in selection mode
+    if (appState.compras.selectedItems.size > 0 && card) {
+      const id = card.dataset.id;
+      toggleSelection('compras', id);
+      return;
+    }
 
     if (checkbox) {
       const id = checkbox.dataset.id;
@@ -126,10 +135,16 @@ function attachComprasEvents() {
         { label: 'Cancelar', action: 'cancel', primary: false },
         { label: 'Eliminar', action: 'delete', primary: true }
       ], (action) => {
-        if (action === 'delete') deleteItem(id, 'compras');
+        if (action === 'delete') {
+          deleteItem(id, 'compras');
+          removeFromSelection('compras', id);
+        }
       });
     }
   });
+
+  // Click outside to exit selection mode
+  document.addEventListener('click', (e) => handleClickOutside(e, 'compras'));
 
   statsBar.addEventListener('click', (e) => {
     const statItem = e.target.closest('.stat-item');
@@ -154,6 +169,25 @@ function attachComprasEvents() {
   list.addEventListener('mouseup', () => clearTimeout(categoryPressTimer));
   list.addEventListener('mouseleave', () => clearTimeout(categoryPressTimer));
   list.addEventListener('touchend', () => clearTimeout(categoryPressTimer));
+
+  // Selection mode (long-press)
+  list.addEventListener('mousedown', (e) => handleSelectionStart(e, 'compras'));
+  list.addEventListener('touchstart', (e) => handleSelectionStart(e, 'compras'), { passive: true });
+  list.addEventListener('mouseup', handleSelectionEnd);
+  list.addEventListener('mouseleave', handleSelectionEnd);
+  list.addEventListener('touchend', handleSelectionEnd);
+
+  // Restore selection state on items
+  list.querySelectorAll('.item-card').forEach(card => {
+    if (appState.compras.selectedItems.has(card.dataset.id)) {
+      card.classList.add('selected');
+    }
+  });
+
+  // Render selection bar if active
+  if (isSelectionActive('compras')) {
+    renderSelectionBar('compras');
+  }
 }
 
 function handleCategoryPressStart(e) {

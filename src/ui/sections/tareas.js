@@ -8,6 +8,7 @@ import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
 import { addItem, deleteItem, toggleCompleted } from '../../services/dataService.js';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase.js';
+import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
 
 let pressTimer = { value: null };
 
@@ -78,14 +79,14 @@ export function renderTareasSection() {
           <div class="item-row">
             <span class="item-text">${tarea.titulo}</span>
             <div class="task-meta-expand-wrapper">
-              <div class="task-meta-inline" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                <span class="badge badge-priority ${tarea.prioridad}">${getPriorityLabel(tarea.prioridad)}</span>
+              <div class="task-meta-inline" style="display: flex; align-items: center; gap: 16px; flex-shrink: 0;">
                 ${tarea.fechaLimite ? `
                   <span class="badge-date">
                     <svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"/></svg>
                     ${formatDate(tarea.fechaLimite)}
                   </span>
                 ` : ''}
+                <span class="badge badge-priority ${tarea.prioridad}">${getPriorityLabel(tarea.prioridad)}</span>
               </div>
               <button class="delete-btn" data-id="${tarea.id}">
                 <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -153,6 +154,14 @@ function attachTareasEvents() {
     const deleteBtn = e.target.closest('.delete-btn');
     const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
     const saveBtn = e.target.closest('.save-task-btn');
+    const card = e.target.closest('.item-card');
+
+    // Handle click selection when in selection mode
+    if (appState.tareas.selectedItems.size > 0 && card) {
+      const id = card.dataset.id;
+      toggleSelection('tareas', id);
+      return;
+    }
 
     if (checkbox) {
       const id = checkbox.dataset.id;
@@ -166,20 +175,23 @@ function attachTareasEvents() {
         { label: 'Cancelar', action: 'cancel', primary: false },
         { label: 'Eliminar', action: 'delete', primary: true }
       ], (action) => {
-        if (action === 'delete') deleteItem(id, 'tareas');
+        if (action === 'delete') {
+          deleteItem(id, 'tareas');
+          removeFromSelection('tareas', id);
+        }
       });
     }
 
     if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.item-text') && !e.target.closest('.priority-select') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea')) {
-      const card = expandBtn.closest('.item-card');
-      card.classList.toggle('expanded');
+      const cardEl = expandBtn.closest('.item-card');
+      cardEl.classList.toggle('expanded');
     }
 
     if (saveBtn) {
       const id = saveBtn.dataset.id;
-      const card = saveBtn.closest('.item-card');
-      const textarea = card.querySelector('textarea');
-      const sync = card.querySelector('.sync-indicator');
+      const cardEl = saveBtn.closest('.item-card');
+      const textarea = cardEl.querySelector('textarea');
+      const sync = cardEl.querySelector('.sync-indicator');
       const notas = textarea.value;
 
       try {
@@ -193,6 +205,9 @@ function attachTareasEvents() {
       }
     }
   });
+
+  // Click outside to exit selection mode
+  document.addEventListener('click', (e) => handleClickOutside(e, 'tareas'));
 
   list.addEventListener('change', async (e) => {
     const prioritySelect = e.target.closest('.priority-select');
@@ -228,4 +243,23 @@ function attachTareasEvents() {
   list.addEventListener('mouseup', () => handlePressEnd(pressTimer));
   list.addEventListener('mouseleave', () => handlePressEnd(pressTimer));
   list.addEventListener('touchend', () => handlePressEnd(pressTimer));
+
+  // Selection mode (long-press)
+  list.addEventListener('mousedown', (e) => handleSelectionStart(e, 'tareas'));
+  list.addEventListener('touchstart', (e) => handleSelectionStart(e, 'tareas'), { passive: true });
+  list.addEventListener('mouseup', handleSelectionEnd);
+  list.addEventListener('mouseleave', handleSelectionEnd);
+  list.addEventListener('touchend', handleSelectionEnd);
+
+  // Restore selection state on items
+  list.querySelectorAll('.item-card').forEach(card => {
+    if (appState.tareas.selectedItems.has(card.dataset.id)) {
+      card.classList.add('selected');
+    }
+  });
+
+  // Render selection bar if active
+  if (isSelectionActive('tareas')) {
+    renderSelectionBar('tareas');
+  }
 }

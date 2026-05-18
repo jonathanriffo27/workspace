@@ -15,17 +15,23 @@ export const appState = {
   unsubscribes: [],
   compras: {
     items: [],
-    filters: []
+    filters: [],
+    selectedItems: new Set(),
+    selectionMode: false
   },
   ideas: {
     items: [],
     filter: 'todas',
-    searchQuery: ''
+    searchQuery: '',
+    selectedItems: new Set(),
+    selectionMode: false
   },
   tareas: {
     items: [],
     filter: 'todas',
-    newTaskPriority: 'media'
+    newTaskPriority: 'media',
+    selectedItems: new Set(),
+    selectionMode: false
   },
   ui: {
     toast: null,

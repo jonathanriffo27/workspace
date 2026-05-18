@@ -7,6 +7,7 @@ import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
 import { addItem, deleteItem, toggleCompleted } from '../../services/dataService.js';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase.js';
+import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
 
 let pressTimer = { value: null };
 
@@ -124,6 +125,14 @@ function attachIdeasEvents() {
     const deleteBtn = e.target.closest('.delete-btn');
     const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
     const saveBtn = e.target.closest('.save-idea-btn');
+    const card = e.target.closest('.item-card');
+
+    // Handle click selection when in selection mode
+    if (appState.ideas.selectedItems.size > 0 && card) {
+      const id = card.dataset.id;
+      toggleSelection('ideas', id);
+      return;
+    }
     
     if (checkbox) {
       const id = checkbox.dataset.id;
@@ -137,15 +146,18 @@ function attachIdeasEvents() {
         { label: 'Cancelar', action: 'cancel', primary: false },
         { label: 'Eliminar', action: 'delete', primary: true }
       ], (action) => {
-        if (action === 'delete') deleteItem(id, 'ideas');
+        if (action === 'delete') {
+          deleteItem(id, 'ideas');
+          removeFromSelection('ideas', id);
+        }
       });
     }
 
     if (saveBtn) {
       const id = saveBtn.dataset.id;
-      const card = saveBtn.closest('.item-card');
-      const textarea = card.querySelector('textarea');
-      const sync = card.querySelector('.sync-indicator');
+      const cardEl = saveBtn.closest('.item-card');
+      const textarea = cardEl.querySelector('textarea');
+      const sync = cardEl.querySelector('.sync-indicator');
       const notes = textarea.value;
 
       try {
@@ -160,14 +172,36 @@ function attachIdeasEvents() {
     }
 
     if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea') && !e.target.closest('.item-text')) {
-      const card = expandBtn.closest('.item-card');
-      card.classList.toggle('expanded');
+      const cardEl = expandBtn.closest('.item-card');
+      cardEl.classList.toggle('expanded');
     }
   });
+
+  // Click outside to exit selection mode
+  document.addEventListener('click', (e) => handleClickOutside(e, 'ideas'));
 
   list.addEventListener('mousedown', (e) => handlePressStart(e, 'ideas', pressTimer));
   list.addEventListener('touchstart', (e) => handlePressStart(e, 'ideas', pressTimer), { passive: true });
   list.addEventListener('mouseup', () => handlePressEnd(pressTimer));
   list.addEventListener('mouseleave', () => handlePressEnd(pressTimer));
   list.addEventListener('touchend', () => handlePressEnd(pressTimer));
+
+  // Selection mode (long-press)
+  list.addEventListener('mousedown', (e) => handleSelectionStart(e, 'ideas'));
+  list.addEventListener('touchstart', (e) => handleSelectionStart(e, 'ideas'), { passive: true });
+  list.addEventListener('mouseup', handleSelectionEnd);
+  list.addEventListener('mouseleave', handleSelectionEnd);
+  list.addEventListener('touchend', handleSelectionEnd);
+
+  // Restore selection state on items
+  list.querySelectorAll('.item-card').forEach(card => {
+    if (appState.ideas.selectedItems.has(card.dataset.id)) {
+      card.classList.add('selected');
+    }
+  });
+
+  // Render selection bar if active
+  if (isSelectionActive('ideas')) {
+    renderSelectionBar('ideas');
+  }
 }
