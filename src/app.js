@@ -31,6 +31,12 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
   function init() {
     initStore();
 
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (!event.data || !event.data.type) return;
+      });
+    }
+
     onAuthStateChanged(auth, (user) => {
       appState.user = user;
       appState.userId = user ? user.uid : null;
@@ -74,9 +80,17 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
     });
   }
 
-  // Handle errors
+  // Suppress message channel errors from Firebase SDK and browser extensions
   window.addEventListener('unhandledrejection', (event) => {
-    if (event.reason?.message?.includes('message channel closed')) {
+    const msg = event.reason?.message || '';
+    if (msg.includes('message channel closed') || msg.includes('Channel closed')) {
+      event.preventDefault();
+    }
+  });
+
+  window.addEventListener('error', (event) => {
+    const msg = event.message || '';
+    if (msg.includes('message channel closed') || msg.includes('Channel closed')) {
       event.preventDefault();
     }
   });

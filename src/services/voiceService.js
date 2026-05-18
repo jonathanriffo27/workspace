@@ -11,13 +11,17 @@ import { switchTab } from "../ui/navigation.js";
 import { 
   capitalizeFirstLetter, 
   cleanVoiceText, 
-  getCategoryLabel 
+  getCategoryLabel,
+  splitIntoItems,
+  hasMultipleItems
 } from "../utils/formatting.js";
 
 let recognition = null;
 let voiceTimer = null;
 let isLongPress = false;
+let processingToast = null;
 const LONG_PRESS_DURATION = 600;
+const TIMEOUT_MS = 25000;
 
 export function initVoiceCapture() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -76,6 +80,21 @@ export function initVoiceCapture() {
     delete transcriptEl.dataset.hasContent;
 
     if (text && text.length > 1) {
+      const container = document.getElementById('toast-container');
+      if (container) {
+        processingToast = document.createElement('div');
+        processingToast.className = 'toast info processing';
+        processingToast.innerHTML = `
+          <span class="toast-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" stroke-linecap="round">
+              <circle cx="12" cy="12" r="9" stroke-opacity="0.25"/>
+              <path d="M12 3a9 9 0 0 1 9 9" stroke-dasharray="40 100"/>
+            </svg>
+          </span>
+          <span class="toast-message">Procesando audio...</span>
+        `;
+        container.appendChild(processingToast);
+      }
       processVoiceCapture(text);
     }
   };
@@ -87,14 +106,43 @@ export function initVoiceCapture() {
 }
 
 async function processVoiceCapture(text) {
+  const timeoutId = setTimeout(() => {
+    if (processingToast) {
+      processingToast.remove();
+      processingToast = null;
+    }
+    showToast('Tiempo de procesamiento agotado. Intenta de nuevo.', 'error');
+  }, TIMEOUT_MS);
+
+  const statusEl = document.querySelector('.voice-status');
   const overlay = document.getElementById('voice-overlay');
+
+  if (statusEl) statusEl.textContent = 'Analizando con IA...';
   if (overlay) overlay.classList.add('analyzing');
 
-  const result = await categorizeWithLLM(text);
-  const items = result.items || [{ module: result.module, subcat: result.subcat, title: result.title }];
-  let mainModule = items[0]?.module || 'ideas';
-
   try {
+    const result = await categorizeWithLLM(text);
+
+    const module = result.category || result.module || 'ideas';
+
+    let itemsRaw = result.items || result.titles || result.products || result.elements;
+
+    if (!Array.isArray(itemsRaw) || itemsRaw.length === 0) {
+      const separatedItems = splitIntoItems(text);
+      itemsRaw = separatedItems;
+    } else if (itemsRaw.length === 1 && typeof itemsRaw[0] === 'string' && hasMultipleItems(itemsRaw[0])) {
+      const separatedItems = splitIntoItems(itemsRaw[0]);
+      itemsRaw = separatedItems;
+    }
+
+    const items = itemsRaw.map(item => {
+      const title = typeof item === 'string' ? item : (item.title || item.name || item.product || '');
+      if (!title) return null;
+      return { module, subcat: result.subcat || 'supermercado', title: cleanVoiceText(title) };
+    }).filter(Boolean);
+
+    let mainModule = items[0]?.module || 'ideas';
+
     const writePromises = items.filter(i => i.title).map(({ module, subcat, title }) => {
       if (module === 'compras') {
         return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
@@ -106,17 +154,34 @@ async function processVoiceCapture(text) {
     });
 
     await Promise.all(writePromises);
-    
+
+    clearTimeout(timeoutId);
+    if (processingToast) {
+      processingToast.remove();
+      processingToast = null;
+    }
+
     if (overlay) {
       overlay.classList.remove('analyzing');
       overlay.classList.remove('active');
     }
+    if (statusEl) statusEl.textContent = 'Escuchando...';
 
     const message = items.length === 1 ? `Añadido a ${mainModule}` : `${items.length} elementos añadidos`;
-    showVoiceToast(message, text, mainModule, null); // itemId passed as null for multi-items for now
+    showVoiceToast(message, text, mainModule, null);
     switchTab(mainModule);
   } catch (err) {
+    clearTimeout(timeoutId);
+    if (processingToast) {
+      processingToast.remove();
+      processingToast = null;
+    }
     showToast('Error al procesar voz', 'error');
+    if (overlay) {
+      overlay.classList.remove('analyzing');
+      overlay.classList.remove('active');
+    }
+    if (statusEl) statusEl.textContent = 'Escuchando...';
   }
 }
 
@@ -130,7 +195,7 @@ async function categorizeWithLLM(text) {
       headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "openrouter/free",
-        messages: [{ role: "system", content: "Categorize user input into: compras, tareas, ideas. Return JSON." }, { role: "user", content: text }]
+        messages: [{ role: "system", content: "You are a smart organizer. When user says multiple things (like 'lechuga, tomate y zanahoria' or 'comprar pan y leche'), split them into separate items. Return JSON with 'category' (compras/tareas/ideas) and 'items' (array of strings). Example: 'comprar leche pan y queso' -> {category: 'compras', items: ['Leche', 'Pan', 'Queso']}. Example: 'tengo que llamar a juan y terminar informe' -> {category: 'tareas', items: ['Llamar a Juan', 'Terminar informe']}" }, { role: "user", content: text }]
       })
     });
     const data = await response.json();
@@ -143,9 +208,23 @@ async function categorizeWithLLM(text) {
 
 function categorizeInputHeuristic(text) {
   const t = text.toLowerCase();
-  if (t.includes('comprar') || t.includes('traer')) return { module: 'compras', subcat: 'supermercado', title: cleanVoiceText(text) };
-  if (t.includes('tengo que') || t.includes('debo')) return { module: 'tareas', subcat: 'media', title: cleanVoiceText(text) };
-  return { module: 'ideas', subcat: null, title: cleanVoiceText(text) };
+  let module = 'ideas';
+  let subcat = null;
+
+  if (t.includes('comprar') || t.includes('traer') || t.includes('necesito') || t.includes('falta')) {
+    module = 'compras';
+    subcat = 'supermercado';
+  } else if (t.includes('tengo que') || t.includes('debo')) {
+    module = 'tareas';
+    subcat = 'media';
+  }
+
+  // Usar splitIntoItems para separar múltiples items
+  const items = splitIntoItems(text);
+  if (items.length > 1) {
+    return { module, subcat, items };
+  }
+  return { module, subcat, items: [cleanVoiceText(text)] };
 }
 
 function showVoiceToast(message, originalText, category, itemId) {
