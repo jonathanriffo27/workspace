@@ -118,20 +118,16 @@ async function processVoiceCapture(text) {
 
   try {
     const result = await categorizeWithLLM(text);
-    console.log('[DEBUG VOICE] LLM result:', JSON.stringify(result));
 
     const module = result.category || result.module || 'ideas';
 
     let itemsRaw = result.items || result.titles || result.products || result.elements;
-    console.log('[DEBUG VOICE] itemsRaw before normalization:', JSON.stringify(itemsRaw));
 
     if (!Array.isArray(itemsRaw) || itemsRaw.length === 0) {
       const separatedItems = splitIntoItems(text);
-      console.log('[DEBUG VOICE] Using splitIntoItems (empty or invalid):', separatedItems);
       itemsRaw = separatedItems;
     } else if (itemsRaw.length === 1 && typeof itemsRaw[0] === 'string' && hasMultipleItems(itemsRaw[0])) {
       const separatedItems = splitIntoItems(itemsRaw[0]);
-      console.log('[DEBUG VOICE] Single item with separators, splitting:', separatedItems);
       itemsRaw = separatedItems;
     }
 
@@ -167,7 +163,6 @@ async function processVoiceCapture(text) {
       };
     }).filter(Boolean);
 
-    console.log('[DEBUG VOICE] items after normalization:', JSON.stringify(items));
     let mainModule = items[0]?.module || 'ideas';
 
     const writePromises = items.filter(i => i.title).map(({ module, subcat, title, notes }) => {
@@ -234,7 +229,6 @@ async function categorizeWithLLM(text) {
 }
 
 function categorizeInputHeuristic(text) {
-  console.log('[DEBUG VOICE] categorizeInputHeuristic called with:', text);
   const t = text.toLowerCase();
   let module = 'ideas';
   let subcat = null;
@@ -248,24 +242,19 @@ function categorizeInputHeuristic(text) {
   }
 
   const separatedItems = splitIntoItems(text);
-  console.log('[DEBUG VOICE] Heuristic splitIntoItems result:', separatedItems);
   if (separatedItems.length > 1 && module !== 'compras') {
-    const result = { module, subcat, items: separatedItems.map(item => ({ title: cleanVoiceText(item), notes: '' })) };
-    console.log('[DEBUG VOICE] Heuristic returning (multiple items, not compras):', result);
-    return result;
+    return { module, subcat, items: separatedItems.map(item => ({ title: cleanVoiceText(item), notes: '' })) };
   }
 
   if (separatedItems.length > 1) {
-    const result = { module, subcat, items: separatedItems.map(item => ({ title: cleanVoiceText(item), notes: '' })) };
-    console.log('[DEBUG VOICE] Heuristic returning (multiple items):', result);
-    return result;
+    return { module, subcat, items: separatedItems.map(item => ({ title: cleanVoiceText(item), notes: '' })) };
   }
 
   // Para ideas: guardar texto completo en notes y crear resumen de 4 palabras
   if (module === 'ideas') {
     const words = text.split(' ').slice(0, 4).join(' ');
     const summary = words.charAt(0).toUpperCase() + words.slice(1);
-    const result = { 
+    return { 
       module, 
       subcat: null, 
       items: [{ 
@@ -273,8 +262,6 @@ function categorizeInputHeuristic(text) {
         notes: text
       }] 
     };
-    console.log('[DEBUG VOICE] Heuristic returning (ideas):', result);
-    return result;
   }
 
   if (module !== 'compras') {
@@ -310,20 +297,15 @@ function categorizeInputHeuristic(text) {
     if (splitPos > 0) {
       const title = text.substring(0, splitPos).trim();
       const notes = text.substring(splitPos + (separator.length > 1 ? separator.length + 2 : 1)).trim();
-      const result = { 
+      return { 
         module, 
         subcat, 
         items: [{ title: cleanVoiceText(title), notes: cleanVoiceText(notes) }] 
       };
-      console.log('[DEBUG VOICE] Heuristic returning (with separator "' + separator + '"):', result);
-      return result;
     }
-    console.log('[DEBUG VOICE] Heuristic: No separator found for tasks/ideas');
   }
 
-  const result = { module, subcat, items: [{ title: cleanVoiceText(text), notes: '' }] };
-  console.log('[DEBUG VOICE] Heuristic returning (fallback):', result);
-  return result;
+  return { module, subcat, items: [{ title: cleanVoiceText(text), notes: '' }] };
 }
 
 function showVoiceToast(message, originalText, category, itemId) {
