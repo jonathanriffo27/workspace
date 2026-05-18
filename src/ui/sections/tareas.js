@@ -105,14 +105,11 @@ export function renderTareasSection() {
                   <input type="date" class="studio-date-input" value="${fechaLimiteValue}">
                 </div>
               </div>
-              <textarea placeholder="Notas adicionales...">${tarea.notas || ''}</textarea>
-            </div>
-            <div class="task-actions-col">
-              <button class="save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
-                ${saveIcon}
-              </button>
-              <div class="sync-indicator">
-                <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+              <div class="task-notes-row">
+                <textarea placeholder="Notas adicionales...">${tarea.notas || ''}</textarea>
+                <button class="save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
+                  ${saveIcon}
+                </button>
               </div>
             </div>
           </div>

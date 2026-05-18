@@ -87,16 +87,11 @@ export function renderIdeasSection() {
               </button>
             </div>
           </div>
-          <div class="idea-notes-wrapper">
+          <div class="idea-notes-row">
             <textarea data-id="${idea.id}" placeholder="Desarrolla tu idea aquí...">${idea.notes || idea.notas || ''}</textarea>
-            <div class="idea-edit-actions" style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px;">
-              <button class="save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
-                ${saveIcon}
-              </button>
-              <div class="sync-indicator">
-                <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-              </div>
-            </div>
+            <button class="save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
+              ${saveIcon}
+            </button>
           </div>
         </div>
       `;
