@@ -15,7 +15,7 @@
 /* Task Cards */
 .item-card.task {
   align-items: flex-start;
-  padding: 6px 12px;
+  padding: 6px 8px 6px 12px;
   gap: 12px;
   cursor: pointer;
 }
@@ -47,15 +47,25 @@
 .item-card.task .task-meta-expand-wrapper {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 12px;
   margin-left: auto;
-  margin-right: 5px;
   flex-shrink: 0;
+}
+
+.item-card.task .task-meta-expand-wrapper .item-actions-group:first-child {
+  gap: 12px;
+}
+
+.item-card.task .task-meta-expand-wrapper .item-actions-group:last-child {
+  gap: 0;
+}
+
+.item-card.task .task-meta-expand-wrapper .btn-icon {
+  width: 28px;
 }
 
 .item-card.task .delete-btn {
   flex-shrink: 0;
-  margin-left: 5px;
 }
 
 .item-card.task .task-actions-row {

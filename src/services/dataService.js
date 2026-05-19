@@ -57,6 +57,23 @@ export async function updateItemField(id, type, field, value) {
   }
 }
 
+/**
+ * Updates metadata for a task (e.g., priority, due date)
+ * @param {string} id - Task ID
+ * @param {Object} data - Metadata object
+ */
+export async function updateTaskMeta(id, data) {
+  try {
+    const docRef = doc(db, 'tareas', id);
+    await updateDoc(docRef, data);
+    return true;
+  } catch (err) {
+    console.error('Error updating task meta:', err);
+    showToast('Error al actualizar', 'error');
+    return false;
+  }
+}
+
 export async function toggleCompleted(id, type, currentStatus) {
   try {
     const docRef = doc(db, type, id);

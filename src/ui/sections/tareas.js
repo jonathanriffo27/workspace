@@ -5,7 +5,7 @@ import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
-import { addItem, deleteItem, toggleCompleted, updateNotes, updateTaskMeta } from '../../services/dataService.js';
+import { addItem, deleteItem, toggleCompleted, updateNotes, updateTaskMeta, updateItemField } from '../../services/dataService.js';
 import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
 
 let pressTimer = { value: null };
@@ -76,7 +76,7 @@ export function renderTareasSection() {
         <div class="item-content">
           <div class="item-row">
             <span class="item-text"></span>
-            <div class="item-meta-group">
+            <div class="task-meta-expand-wrapper">
               <div class="item-actions-group">
                 ${tarea.fechaLimite ? `
                   <span class="badge-date">
@@ -96,6 +96,7 @@ export function renderTareasSection() {
               </div>
             </div>
           </div>
+
           <div class="task-edit-fields">
             <div class="task-content-col">
               <div class="task-row-edit">

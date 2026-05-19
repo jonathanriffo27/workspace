@@ -2,17 +2,25 @@
   display: flex;
   flex-direction: row;
   align-items: flex-start; /* Always top-aligned to avoid jumps */
-  padding: 6px 12px;
+  padding: 6px 8px 6px 12px;
   gap: 12px;
   cursor: pointer;
 }
 
 .item-card.idea.expanded {
-  padding: 6px 12px;
+  padding: 6px 8px 6px 12px;
 }
 
 .item-card.idea .checkbox {
   margin-top: 6px; /* Align with first line of text */
+}
+
+.item-card.idea .item-actions-group {
+  gap: 0;
+}
+
+.item-card.idea .btn-icon {
+  width: 28px;
 }
 
 .item-card.idea .item-content {

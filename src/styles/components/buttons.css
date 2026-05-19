@@ -26,8 +26,8 @@
 
 .btn-icon--danger:hover { color: var(--danger); }
 
-.delete-btn { opacity: 0.3; transition: opacity 0.2s ease; }
-.item-card:hover .delete-btn { opacity: 1; }
+.delete-btn { color: var(--text-secondary); opacity: 0.6; transition: all 0.2s ease; }
+.delete-btn:hover { opacity: 1; color: var(--text-primary); }
 
 .btn-primary {
   width: 100%;
