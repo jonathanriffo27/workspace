@@ -1,0 +1,41 @@
+:root {
+  /* Colors - More nuanced palette */
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #121212;
+  --bg-tertiary: #1A1A1A;
+  --surface-card: rgba(28, 28, 28, 0.7);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(245, 158, 11, 0.4);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #525252;
+  
+  --accent-primary: #F59E0B;
+  --accent-hover: #D97706;
+  --accent-glow: rgba(245, 158, 11, 0.2);
+  
+  --priority-alta: #FF4D4D;
+  --priority-media: #F59E0B;
+  --priority-baja: #3B82F6;
+  
+  --success: #10B981;
+  --danger: #EF4444;
+
+  /* Spacing & Radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-display: 'DM Serif Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+
+  /* Effects */
+  --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(245, 158, 11, 0.15);
+  --glass-bg: rgba(15, 15, 15, 0.8);
+  --glass-blur: blur(16px);
+}

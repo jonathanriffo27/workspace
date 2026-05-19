@@ -1,0 +1,127 @@
+.item-card.idea { 
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start; /* Always top-aligned to avoid jumps */
+  padding: 6px 12px;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.item-card.idea.expanded {
+  padding: 6px 12px;
+}
+
+.item-card.idea .checkbox {
+  margin-top: 6px; /* Align with first line of text */
+}
+
+.item-card.idea .item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-card.idea .item-row { 
+  height: 32px; /* Fixed height for first line consistency */
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  gap: 8px; 
+}
+
+.item-text.is-editing {
+  background: var(--bg-tertiary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  outline: 2px solid var(--accent-primary);
+  white-space: normal;
+  cursor: text;
+}
+
+.item-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 32px;
+}
+
+.item-card.idea:not(.expanded) .item-actions {
+  gap: 0;
+}
+
+.item-card.idea.expanded .item-actions {
+  gap: 8px;
+}
+
+.idea-notes-row { 
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-height: 0; 
+  overflow: hidden; 
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+  opacity: 0;
+}
+
+.item-card.idea.expanded .idea-notes-row { 
+  max-height: 600px; 
+  padding: 8px 0 7px; 
+  opacity: 1; 
+}
+
+.idea-notes-row textarea {
+  flex: 1;
+  min-width: 0;
+}
+
+.idea-notes-row .save-idea-btn {
+  align-self: flex-end;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--accent-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -5px;
+}
+
+.idea-notes-row .save-idea-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.item-card.idea textarea {
+  min-height: 120px;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.sync-indicator {
+  display: none; /* Hide by default */
+  align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  color: var(--success); opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.item-card.idea.expanded .sync-indicator {
+  display: flex;
+}
+
+.sync-indicator svg { width: 16px; height: 16px; stroke-width: 3; }
+.sync-indicator.visible { opacity: 1; }
