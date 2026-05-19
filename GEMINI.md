@@ -106,21 +106,33 @@ When a user asks you to build a frontend interface, follow this flow:
 # Project-Specific Context: Workspace Personal
 
 ## Project Overview
-**Workspace Personal** is a mobile-first productivity SPA with three features: Compras (Shopping), Ideas (Notes), and Tareas (Tasks).
+**Workspace Personal** is a mobile-first productivity SPA with three features: Compras (Shopping), Ideas (Notes), and Tareas (Tasks). It features real-time synchronization with Firebase and a robust security architecture.
 
 ### Core Technologies
 - **Build Tool:** Vite
-- **Language:** Vanilla JavaScript, HTML5, CSS3
-- **State:** Centralized reactive `appState` in `src/app.js`.
-- **Persistence:** `localStorage` (`workspace_compras`, `workspace_ideas`, `workspace_tareas`).
+- **Language:** Vanilla JavaScript, HTML5, CSS3 (Modular Architecture)
+- **State:** Centralized reactive `appState` in `src/store.js`.
+- **Backend:** Firebase Authentication & Firestore (Real-time sync).
+- **Persistence:** Firestore + `localStorage` fallback.
+
+### Security Standards
+- **XSS Protection:** Direct `innerHTML` usage is restricted for user content. Use `textContent` and safe DOM manipulation.
+- **Data Validation:** Centralized sanitization and length validation in `src/services/dataService.js`.
+- **Secrets Management:** Credentials must never be hardcoded. Use `.env` files for Firebase configuration with the `VITE_` prefix.
+- **Firestore Rules:** Data access is strictly controlled by `userId` at the database level.
 
 ## Building and Running
-- **Dev Server:** `pnpm dev` (Port 4173)
+- **Dev Server:** `pnpm dev`
 - **Build:** `pnpm build`
 - **Preview:** `pnpm preview`
+- **Deploy:** `pnpm deploy` (Builds and deploys to Firebase Hosting)
 
 ## Key Files
 - `index.html`: Entry point.
-- `src/app.js`: Main logic & state.
-- `src/styles.css`: Global styles.
+- `src/app.js`: Application initialization and auth listener.
+- `src/store.js`: Centralized reactive state management.
+- `src/styles/main.css`: CSS entry point (Modular ITCSS-like structure).
+- `src/services/dataService.js`: Secure data operations layer (CRUD).
+- `src/services/firebaseSync.js`: Real-time Firestore synchronization logic.
+- `src/ui/sections/`: Functional modules (Compras, Ideas, Tareas).
 - `SPEC.md`: Detailed UI/UX specification.

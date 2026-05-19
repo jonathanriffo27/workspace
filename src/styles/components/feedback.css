@@ -4,6 +4,7 @@
 .toast::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent-primary); }
 .toast.success::before { background: var(--success); }
 .toast.error::before { background: var(--danger); }
+.toast.revert::before, .toast.info::before { background: var(--info); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 .toast.processing .toast-icon { display: flex; align-items: center; justify-content: center; animation: toastSpin 0.8s linear infinite; }
 @keyframes toastSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

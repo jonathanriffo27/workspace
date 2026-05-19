@@ -76,8 +76,8 @@ export function renderTareasSection() {
         <div class="item-content">
           <div class="item-row">
             <span class="item-text"></span>
-            <div class="task-meta-expand-wrapper">
-              <div class="task-meta-inline" style="display: flex; align-items: center; gap: 16px; flex-shrink: 0;">
+            <div class="item-meta-group">
+              <div class="item-actions-group">
                 ${tarea.fechaLimite ? `
                   <span class="badge-date">
                     <svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"/></svg>
@@ -86,12 +86,14 @@ export function renderTareasSection() {
                 ` : ''}
                 <span class="badge badge-priority ${tarea.prioridad}">${getPriorityLabel(tarea.prioridad)}</span>
               </div>
-              <button class="delete-btn" data-id="${tarea.id}">
-                <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              <button class="expand-indicator-btn" style="background:transparent; border:none; color:var(--text-tertiary); display:flex; padding:0;">
-                ${expandIcon}
-              </button>
+              <div class="item-actions-group">
+                <button class="btn-icon delete-btn" data-id="${tarea.id}" title="Eliminar tarea">
+                  <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button class="btn-icon expand-indicator-btn" title="Expandir/Contraer">
+                  ${expandIcon}
+                </button>
+              </div>
             </div>
           </div>
           <div class="task-edit-fields">
@@ -106,7 +108,7 @@ export function renderTareasSection() {
               </div>
               <div class="task-notes-row">
                 <textarea placeholder="Notas adicionales..."></textarea>
-                <button class="save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
+                <button class="btn-icon btn-icon--primary save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
                   ${saveIcon}
                 </button>
               </div>

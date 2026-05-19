@@ -2,9 +2,32 @@
 .add-btn:active { transform: scale(0.9); }
 .add-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.5; fill: none; }
 
-.delete-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--text-tertiary); cursor: pointer; opacity: 0.3; }
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.btn-icon:hover { color: var(--text-primary); }
+.btn-icon:active { transform: scale(0.9); }
+.btn-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+.btn-icon--primary { color: var(--accent-primary); }
+.btn-icon--primary:hover { color: var(--accent-hover); }
+
+.btn-icon--danger:hover { color: var(--danger); }
+
+.delete-btn { opacity: 0.3; transition: opacity 0.2s ease; }
 .item-card:hover .delete-btn { opacity: 1; }
-.delete-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
 
 .btn-primary {
   width: 100%;

@@ -78,18 +78,18 @@ export function renderIdeasSection() {
         <div class="item-content">
           <div class="item-row">
             <span class="item-text"></span>
-            <div class="idea-meta-actions" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-              <button class="delete-btn" data-id="${idea.id}">
+            <div class="item-actions-group">
+              <button class="btn-icon delete-btn" data-id="${idea.id}" title="Eliminar idea">
                 <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
-              <button class="expand-indicator-btn" style="background:transparent; border:none; color:var(--text-tertiary); display:flex; padding:0;">
+              <button class="btn-icon expand-indicator-btn" title="Expandir/Contraer">
                 ${expandIcon}
               </button>
             </div>
           </div>
           <div class="idea-notes-row">
             <textarea data-id="${idea.id}" placeholder="Desarrolla tu idea aquí..."></textarea>
-            <button class="save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
+            <button class="btn-icon btn-icon--primary save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
               ${saveIcon}
             </button>
           </div>

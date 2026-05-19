@@ -78,7 +78,7 @@ export function renderComprasSection() {
             <span class="badge badge-categoria" data-id="${item.id}" data-category="${item.categoria}" title="Mantén presionado para cambiar">${getCategoryLabel(item.categoria)}</span>
           </div>
         </div>
-        <button class="delete-btn" data-id="${item.id}">
+        <button class="btn-icon delete-btn" data-id="${item.id}" title="Eliminar producto">
           <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       `;

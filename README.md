@@ -8,62 +8,56 @@ A premium, mobile-first productivity Single Page Application (SPA) designed for 
 
 **Workspace Personal** is a centralized tool to manage your daily life across three core modules:
 - **🛒 Compras (Shopping List):** Organized by categories with smart sorting.
-- **💡 Ideas (Notes):** Fast capture for thoughts and inspirations with search and archival.
-- **✅ Tareas (Tasks):** Priority-based task management with due dates.
+- **💡 Ideas (Notes):** Fast capture with search, archival, and expandable notes.
+- **✅ Tareas (Tasks):** Priority-based management with due dates and real-time sync.
 
 ## ✨ Key Features
 
-- **Mobile-First Design:** Optimized for Android mobile browsers with a full-viewport, app-like experience.
-- **Premium Aesthetic:** High-contrast dark theme (#0F0F0F) with warm amber accents (#F59E0B).
-- **Reactive State Management:** Centralized `appState` for real-time UI updates without page refreshes.
-- **Offline-First Persistence:** Automatically saves all data to `localStorage`.
-- **Performance Focused:** Built with Vanilla JS and Vite for near-instant load times.
-- **Typography:** Refined pairing of *DM Serif Display* (Headers) and *DM Sans* (Body).
+- **Mobile-First Design:** Optimized for mobile browsers with a full-viewport, premium glassmorphism aesthetic.
+- **Real-Time Sync:** Powered by Firebase Firestore for seamless multi-device updates.
+- **Secure by Design:** Built-in XSS protection, input validation, and secure credential management.
+- **Reactive State:** Centralized `appState` for instant UI feedback.
+- **Typography:** DM Serif Display & DM Sans pairing.
 
 ## 🛠️ Tech Stack
 
 - **Tooling:** [Vite](https://vitejs.dev/)
-- **Core:** Vanilla JavaScript (ES6+), HTML5, CSS3
-- **Database:** `localStorage` (Browser-based persistence)
-- **Deployment:** Vercel/Netlify (Ready)
-- **Integration:** Firebase (Optional/Pre-configured in `src/firebase.js`)
+- **Core:** Vanilla JavaScript (ES6+), HTML5, CSS3 (Modular)
+- **Backend:** Firebase (Auth & Firestore)
+- **Persistence:** Firestore + local caching.
 
 ## 📦 Project Structure
 
 ```text
 ├── src/
-│   ├── app.js           # Core logic & Centralized State
-│   ├── renderIdeas.js   # Specialized rendering for Ideas module
-│   ├── styles.css       # Global design system & component styles
-│   ├── firebase.js      # Firebase configuration
-│   └── ... (assets)
-├── index.html           # Main entry point
-├── SPEC.md              # Detailed technical specification
-└── package.json         # Dependencies and scripts
+│   ├── app.js           # App Entry & Auth
+│   ├── store.js         # Reactive State
+│   ├── firebase.js      # Firebase Initialization
+│   ├── services/        # Data & Sync Logic
+│   ├── styles/          # Modular CSS System
+│   └── ui/              # Components & Sections
+├── .env                 # API Keys (Git ignored)
+├── index.html           # Entry point
+└── SPEC.md              # Technical Spec
 ```
 
 ## ⚙️ Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v18+)
-- [pnpm](https://pnpm.io/) (Recommended)
+- Node.js (v18+)
+- pnpm (Recommended)
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/workspace-personal.git
-   cd workspace-personal
+### Installation & Config
+1. Clone the repository.
+2. Install dependencies: `pnpm install`.
+3. Create a `.env` file in the root:
+   ```env
+   VITE_FIREBASE_API_KEY=your_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your_project
+   ...
    ```
-
-2. Install dependencies:
-   ```bash
-   pnpm install
-   ```
-
-3. Start the development server:
-   ```bash
-   pnpm dev
-   ```
+4. Start dev server: `pnpm dev`.
 
 ### Building for Production
 To create an optimized production build:

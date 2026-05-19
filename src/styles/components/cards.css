@@ -21,7 +21,21 @@
 .item-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; }
 .item-text, .task-title { font-size: 14px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-full); font-size: 9px; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; }
+.item-meta-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.item-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-full); font-size: 9px; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; flex-shrink: 0; }
 .badge-categoria { background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border-color: var(--border-subtle); }
 .badge-priority { color: #FFFFFF; }
 .badge-priority.alta { background: var(--priority-alta); }
