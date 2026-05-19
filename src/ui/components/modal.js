@@ -6,13 +6,29 @@ export function showModal(title, content, buttons, callback) {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal">
-      <h3 class="modal-title">${title}</h3>
-      ${content}
-      <div class="modal-actions">
-        ${buttons.map(btn => `<button class="modal-btn ${btn.primary ? 'primary' : 'secondary'}" data-action="${btn.action}">${btn.label}</button>`).join('')}
-      </div>
+      <h3 class="modal-title"></h3>
+      <div class="modal-content-area"></div>
+      <div class="modal-actions"></div>
     </div>
   `;
+
+  overlay.querySelector('.modal-title').textContent = title;
+  
+  const contentArea = overlay.querySelector('.modal-content-area');
+  if (typeof content === 'string') {
+    contentArea.innerHTML = content; // Still allow HTML for internal trusted strings
+  } else if (content instanceof HTMLElement) {
+    contentArea.appendChild(content);
+  }
+
+  const actions = overlay.querySelector('.modal-actions');
+  buttons.forEach(btn => {
+    const button = document.createElement('button');
+    button.className = `modal-btn ${btn.primary ? 'primary' : 'secondary'}`;
+    button.dataset.action = btn.action;
+    button.textContent = btn.label;
+    actions.appendChild(button);
+  });
 
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add('active'), 10);

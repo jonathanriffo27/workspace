@@ -145,13 +145,14 @@ export function updateHeaderForUser(user) {
     userInfo.className = 'user-info';
     const displayName = user.displayName || user.email || 'Usuario';
     userInfo.innerHTML = `
-      <span class="user-name">${displayName}</span>
+      <span class="user-name"></span>
       <button class="logout-btn" title="Cerrar sesión">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
           <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
         </svg>
       </button>
     `;
+    userInfo.querySelector('.user-name').textContent = displayName;
     header.appendChild(userInfo);
 
     header.querySelector('.logout-btn').addEventListener('click', async () => {

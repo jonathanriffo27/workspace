@@ -5,9 +5,7 @@ import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
-import { addItem, deleteItem, toggleCompleted, updateTitle } from '../../services/dataService.js';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase.js';
+import { addItem, deleteItem, toggleCompleted, updateTitle, updateItemField } from '../../services/dataService.js';
 import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
 
 let pressTimer = { value: null };
@@ -76,7 +74,7 @@ export function renderComprasSection() {
         </div>
         <div class="item-content">
           <div class="item-row">
-            <span class="item-text">${item.nombre}</span>
+            <span class="item-text"></span>
             <span class="badge badge-categoria" data-id="${item.id}" data-category="${item.categoria}" title="Mantén presionado para cambiar">${getCategoryLabel(item.categoria)}</span>
           </div>
         </div>
@@ -84,6 +82,10 @@ export function renderComprasSection() {
           <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       `;
+
+      // Safely set user-provided content
+      card.querySelector('.item-text').textContent = item.nombre || '';
+
       list.appendChild(card);
     });
   }
@@ -214,12 +216,8 @@ async function changeCategory(id, currentCategory) {
 
   showModal('Cambiar categoría', '', buttons, async (action) => {
     if (action && action !== 'cancel') {
-      try {
-        await updateDoc(doc(db, 'compras', id), { categoria: action });
+      if (await updateItemField(id, 'compras', 'categoria', action)) {
         showToast('Categoría actualizada', 'success');
-      } catch (err) {
-        console.error('Error updating category:', err);
-        showToast('Error al actualizar categoría', 'error');
       }
     }
   });

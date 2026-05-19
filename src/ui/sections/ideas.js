@@ -4,9 +4,7 @@ import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
-import { addItem, deleteItem, toggleCompleted } from '../../services/dataService.js';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase.js';
+import { addItem, deleteItem, toggleCompleted, updateNotes } from '../../services/dataService.js';
 import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
 
 let pressTimer = { value: null };
@@ -72,13 +70,14 @@ export function renderIdeasSection() {
       const expandIcon = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M6 9l6 6 6-6"/></svg>`;
       const saveIcon = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`;
 
+      // Use innerHTML for static structure only
       card.innerHTML = `
         <div class="checkbox ${idea.archivada ? 'checked' : ''}" data-id="${idea.id}">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
         <div class="item-content">
           <div class="item-row">
-            <span class="item-text">${idea.titulo}</span>
+            <span class="item-text"></span>
             <div class="idea-meta-actions" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
               <button class="delete-btn" data-id="${idea.id}">
                 <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -89,13 +88,18 @@ export function renderIdeasSection() {
             </div>
           </div>
           <div class="idea-notes-row">
-            <textarea data-id="${idea.id}" placeholder="Desarrolla tu idea aquí...">${idea.notes || idea.notas || ''}</textarea>
+            <textarea data-id="${idea.id}" placeholder="Desarrolla tu idea aquí..."></textarea>
             <button class="save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
               ${saveIcon}
             </button>
           </div>
         </div>
       `;
+
+      // Safely set user-provided content
+      card.querySelector('.item-text').textContent = idea.titulo || '';
+      card.querySelector('textarea').value = idea.notes || idea.notas || '';
+      
       list.appendChild(card);
     });
   }
@@ -160,14 +164,10 @@ function attachIdeasEvents() {
       const sync = cardEl.querySelector('.sync-indicator');
       const notes = textarea.value;
 
-      try {
-        await updateDoc(doc(db, 'ideas', id), { notas: notes });
+      if (await updateNotes(id, 'ideas', notes)) {
         sync.classList.add('visible');
         setTimeout(() => sync.classList.remove('visible'), 2000);
         showToast('Notas guardadas', 'success');
-      } catch (err) {
-        console.error('Error saving notes:', err);
-        showToast('Error al guardar notas', 'error');
       }
     }
 

@@ -9,15 +9,51 @@ import { appState } from "../store.js";
 import { showToast } from "../ui/components/toast.js";
 import { capitalizeFirstLetter } from "../utils/formatting.js";
 
+const MAX_TEXT_LENGTH = 1000;
+
+function sanitizeAndValidate(text, maxLength = MAX_TEXT_LENGTH) {
+  if (!text) return '';
+  const trimmed = text.trim();
+  return trimmed.substring(0, maxLength);
+}
+
 export async function updateTitle(id, type, newTitle) {
   try {
+    const sanitizedTitle = sanitizeAndValidate(newTitle, 200);
+    if (!sanitizedTitle) throw new Error('Title is required');
+
     const docRef = doc(db, type, id);
-    const updateData = type === 'compras' ? { nombre: newTitle } : { titulo: newTitle };
+    const updateData = type === 'compras' ? { nombre: sanitizedTitle } : { titulo: sanitizedTitle };
     await updateDoc(docRef, updateData);
     showToast('Título actualizado', 'success');
   } catch (err) {
     console.error('Error updating title:', err);
     showToast('Error al actualizar título', 'error');
+  }
+}
+
+export async function updateNotes(id, type, notes) {
+  try {
+    const sanitizedNotes = sanitizeAndValidate(notes, MAX_TEXT_LENGTH);
+    const docRef = doc(db, type, id);
+    await updateDoc(docRef, { notas: sanitizedNotes });
+    return true;
+  } catch (err) {
+    console.error('Error updating notes:', err);
+    showToast('Error al guardar notas', 'error');
+    return false;
+  }
+}
+
+export async function updateItemField(id, type, field, value) {
+  try {
+    const docRef = doc(db, type, id);
+    await updateDoc(docRef, { [field]: value });
+    return true;
+  } catch (err) {
+    console.error(`Error updating ${field}:`, err);
+    showToast('Error al actualizar', 'error');
+    return false;
   }
 }
 
@@ -53,10 +89,15 @@ export async function addItem(type, data) {
     const processedData = { ...data };
     
     if (processedData.nombre) {
-      processedData.nombre = capitalizeFirstLetter(processedData.nombre);
+      processedData.nombre = capitalizeFirstLetter(sanitizeAndValidate(processedData.nombre, 200));
+      if (!processedData.nombre) return false;
     }
     if (processedData.titulo) {
-      processedData.titulo = capitalizeFirstLetter(processedData.titulo);
+      processedData.titulo = capitalizeFirstLetter(sanitizeAndValidate(processedData.titulo, 200));
+      if (!processedData.titulo) return false;
+    }
+    if (processedData.notas) {
+      processedData.notas = sanitizeAndValidate(processedData.notas, MAX_TEXT_LENGTH);
     }
 
     await addDoc(collections[type], {

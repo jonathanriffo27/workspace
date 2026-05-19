@@ -5,9 +5,7 @@ import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
-import { addItem, deleteItem, toggleCompleted } from '../../services/dataService.js';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase.js';
+import { addItem, deleteItem, toggleCompleted, updateNotes, updateTaskMeta } from '../../services/dataService.js';
 import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
 
 let pressTimer = { value: null };
@@ -77,7 +75,7 @@ export function renderTareasSection() {
         </div>
         <div class="item-content">
           <div class="item-row">
-            <span class="item-text">${tarea.titulo}</span>
+            <span class="item-text"></span>
             <div class="task-meta-expand-wrapper">
               <div class="task-meta-inline" style="display: flex; align-items: center; gap: 16px; flex-shrink: 0;">
                 ${tarea.fechaLimite ? `
@@ -107,7 +105,7 @@ export function renderTareasSection() {
                 </div>
               </div>
               <div class="task-notes-row">
-                <textarea placeholder="Notas adicionales...">${tarea.notas || ''}</textarea>
+                <textarea placeholder="Notas adicionales..."></textarea>
                 <button class="save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
                   ${saveIcon}
                 </button>
@@ -116,6 +114,11 @@ export function renderTareasSection() {
           </div>
         </div>
       `;
+
+      // Safely set user-provided content
+      card.querySelector('.item-text').textContent = tarea.titulo || '';
+      card.querySelector('textarea').value = tarea.notas || '';
+
       list.appendChild(card);
     });
   }
@@ -194,14 +197,10 @@ function attachTareasEvents() {
       const sync = cardEl.querySelector('.sync-indicator');
       const notas = textarea.value;
 
-      try {
-        await updateDoc(doc(db, 'tareas', id), { notas: notas });
+      if (await updateNotes(id, 'tareas', notas)) {
         sync.classList.add('visible');
         setTimeout(() => sync.classList.remove('visible'), 2000);
         showToast('Notas guardadas', 'success');
-      } catch (err) {
-        console.error('Error saving task notes:', err);
-        showToast('Error al guardar notas', 'error');
       }
     }
   });
@@ -215,12 +214,8 @@ function attachTareasEvents() {
 
     if (prioritySelect) {
       const id = prioritySelect.dataset.id;
-      try {
-        await updateDoc(doc(db, 'tareas', id), { prioridad: prioritySelect.value });
+      if (await updateTaskMeta(id, { prioridad: prioritySelect.value })) {
         showToast('Prioridad actualizada', 'success');
-      } catch (err) {
-        console.error('Error updating priority:', err);
-        showToast('Error al actualizar prioridad', 'error');
       }
     }
 
@@ -228,12 +223,8 @@ function attachTareasEvents() {
       const card = dateInput.closest('.item-card');
       const id = card.dataset.id;
       const newFechaLimite = dateInput.value ? new Date(dateInput.value).getTime() : null;
-      try {
-        await updateDoc(doc(db, 'tareas', id), { fechaLimite: newFechaLimite });
+      if (await updateItemField(id, 'tareas', 'fechaLimite', newFechaLimite)) {
         showToast('Fecha actualizada', 'success');
-      } catch (err) {
-        console.error('Error updating date:', err);
-        showToast('Error al actualizar fecha', 'error');
       }
     }
   });

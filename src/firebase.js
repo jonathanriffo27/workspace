@@ -24,13 +24,13 @@ import {
  * Configuración del Proyecto > General > Tus aplicaciones > SDK setup and configuration
  */
 const firebaseConfig = {
-  apiKey: "AIzaSyCfrIEqQl9Kyb3y-deevvmHIAU9ibyemhk",
-  authDomain: "opencode-36f43.firebaseapp.com",
-  projectId: "opencode-36f43",
-  storageBucket: "opencode-36f43.firebasestorage.app",
-  messagingSenderId: "398357215786",
-  appId: "1:398357215786:web:fc1fe1a6afeb6727106153",
-  measurementId: "G-V8YX1W4TW1"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
