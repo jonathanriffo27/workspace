@@ -1,5 +1,5 @@
 import { appState, notify } from '../../store.js';
-import { deleteItem } from '../../services/dataService.js';
+import { deleteItem, moveItem } from '../../services/dataService.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 
@@ -12,6 +12,10 @@ export function handleSelectionStart(e, section) {
   
   const isInput = e.target.closest('input, textarea, select, .is-editing');
   if (isInput) return;
+
+  // If clicking on title or category badge and NOT in selection mode, let the specific editor handle it
+  const isInteractive = e.target.closest('.item-text, .badge-categoria');
+  if (isInteractive && !appState[section].selectionMode && appState[section].selectedItems.size === 0) return;
 
   currentSection = section;
   selectionTimer = setTimeout(() => {
@@ -77,6 +81,10 @@ export function renderSelectionBar(section) {
     bar.innerHTML = `
       <span class="selection-count">${count} seleccionado${count > 1 ? 's' : ''}</span>
       <div class="selection-actions">
+        <button class="selection-move-btn">
+          <svg viewBox="0 0 24 24"><path d="M15 10l5 5-5 5M4 4v7a4 4 0 004 4h12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Mover
+        </button>
         <button class="selection-delete-btn">
           <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Eliminar
@@ -87,6 +95,10 @@ export function renderSelectionBar(section) {
       </div>
     `;
     sectionEl.appendChild(bar);
+
+    bar.querySelector('.selection-move-btn').addEventListener('click', () => {
+      moveSelectedItems(section);
+    });
     
     bar.querySelector('.selection-delete-btn').addEventListener('click', () => {
       deleteSelectedItems(section);
@@ -123,6 +135,32 @@ export async function deleteSelectedItems(section) {
         }
         clearSelection(section);
         showToast(`${count} elemento${count > 1 ? 's' : ''} eliminad${count > 1 ? 'os' : 'o'}`, 'success');
+      }
+    }
+  );
+}
+
+export async function moveSelectedItems(section) {
+  const selected = Array.from(appState[section].selectedItems);
+  const count = selected.length;
+  
+  const modules = [
+    { label: 'Compras', action: 'compras', primary: false },
+    { label: 'Ideas', action: 'ideas', primary: false },
+    { label: 'Tareas', action: 'tareas', primary: false }
+  ].filter(m => m.action !== section);
+
+  showModal(
+    `Mover ${count} elemento${count > 1 ? 's' : ''}`,
+    `<p>Selecciona el módulo de destino para ${count > 1 ? 'estos elementos' : 'este elemento'}:</p>`,
+    [...modules, { label: 'Cancelar', action: 'cancel', primary: false }],
+    async (targetModule) => {
+      if (targetModule && targetModule !== 'cancel') {
+        for (const id of selected) {
+          await moveItem(id, section, targetModule);
+        }
+        clearSelection(section);
+        showToast(`${count} elemento${count > 1 ? 's' : ''} movid${count > 1 ? 'os' : 'o'} a ${targetModule}`, 'success');
       }
     }
   );

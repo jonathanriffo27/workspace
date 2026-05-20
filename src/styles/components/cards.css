@@ -55,3 +55,12 @@
 .item-card.selected .delete-btn {
   display: none;
 }
+
+.item-card.dragging {
+  opacity: 0.8;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  transform: scale(1.02);
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary);
+  transition: none !important;
+}

@@ -4,8 +4,9 @@ import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
-import { addItem, deleteItem, toggleCompleted, updateNotes } from '../../services/dataService.js';
+import { addItem, deleteItem, toggleCompleted, updateNotes, reorderItem } from '../../services/dataService.js';
 import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
+import { initSortable } from '../components/sortable.js';
 
 let pressTimer = { value: null };
 
@@ -103,6 +104,19 @@ export function renderIdeasSection() {
       list.appendChild(card);
     });
   }
+
+  // Initialize gesture reordering
+  initSortable('ideas-list', 'ideas', () => {
+    const { items, searchQuery } = appState.ideas;
+    let filtered = items;
+    if (searchQuery) {
+      filtered = items.filter(idea => 
+        (idea.titulo && idea.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || 
+        (idea.notas && idea.notas.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+    return sortIdeasItems(filtered);
+  });
 
   attachIdeasEvents();
 }

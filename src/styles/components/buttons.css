@@ -120,6 +120,33 @@
   transform: scale(0.95);
 }
 
+.selection-move-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selection-move-btn:active {
+  transform: scale(0.95);
+}
+
+.selection-move-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+}
+
 .selection-delete-btn svg {
   width: 14px;
   height: 14px;

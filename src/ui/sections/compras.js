@@ -5,8 +5,9 @@ import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
-import { addItem, deleteItem, toggleCompleted, updateTitle, updateItemField } from '../../services/dataService.js';
+import { addItem, deleteItem, toggleCompleted, updateTitle, updateItemField, reorderItem } from '../../services/dataService.js';
 import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
+import { initSortable } from '../components/sortable.js';
 
 let pressTimer = { value: null };
 let categoryPressTimer;
@@ -64,6 +65,7 @@ export function renderComprasSection() {
 
   if (sorted.length > 0) {
     const list = section.querySelector('#compras-list');
+
     sorted.forEach(item => {
       const card = document.createElement('div');
       card.className = `item-card ${item.completado ? 'completed' : ''}`;
@@ -75,7 +77,9 @@ export function renderComprasSection() {
         <div class="item-content">
           <div class="item-row">
             <span class="item-text"></span>
-            <span class="badge badge-categoria" data-id="${item.id}" data-category="${item.categoria}" title="Mantén presionado para cambiar">${getCategoryLabel(item.categoria)}</span>
+            <div class="item-actions-group">
+              <span class="badge badge-categoria" data-id="${item.id}" data-category="${item.categoria}" title="Mantén presionado para cambiar">${getCategoryLabel(item.categoria)}</span>
+            </div>
           </div>
         </div>
         <button class="btn-icon delete-btn" data-id="${item.id}" title="Eliminar producto">
@@ -89,6 +93,13 @@ export function renderComprasSection() {
       list.appendChild(card);
     });
   }
+
+  // Initialize gesture reordering
+  initSortable('compras-list', 'compras', () => {
+    const { items, filters } = appState.compras;
+    const filtered = filters.length > 0 ? items.filter(item => filters.includes(item.categoria)) : items;
+    return sortComprasItems(filtered);
+  });
 
   attachComprasEvents();
 }
@@ -193,6 +204,9 @@ function attachComprasEvents() {
 }
 
 function handleCategoryPressStart(e) {
+  // Prevent category change if selection mode is active
+  if (appState.compras.selectionMode || appState.compras.selectedItems.size > 0) return;
+
   const badge = e.target.closest('.badge-categoria');
   if (!badge) return;
 

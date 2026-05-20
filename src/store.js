@@ -11,6 +11,7 @@ export const appState = {
   user: null,
   userId: null,
   authLoading: true,
+  isDragging: false,
   firestoreInitialized: false,
   unsubscribes: [],
   compras: {

@@ -5,8 +5,9 @@ import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
-import { addItem, deleteItem, toggleCompleted, updateNotes, updateTaskMeta, updateItemField } from '../../services/dataService.js';
+import { addItem, deleteItem, toggleCompleted, updateNotes, updateTaskMeta, updateItemField, reorderItem } from '../../services/dataService.js';
 import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
+import { initSortable } from '../components/sortable.js';
 
 let pressTimer = { value: null };
 
@@ -125,6 +126,15 @@ export function renderTareasSection() {
       list.appendChild(card);
     });
   }
+
+  // Initialize gesture reordering
+  initSortable('tareas-list', 'tareas', () => {
+    const { items, filter } = appState.tareas;
+    const filtered = filter === 'todas' ? items : 
+                     filter === 'pendientes' ? items.filter(i => !i.completado) : 
+                     items.filter(i => i.completado);
+    return sortTareasItems(filtered);
+  });
 
   attachTareasEvents();
 }

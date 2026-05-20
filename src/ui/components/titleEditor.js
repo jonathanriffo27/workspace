@@ -1,4 +1,5 @@
 import { updateTitle } from '../../services/dataService.js';
+import { appState } from '../../store.js';
 
 export async function saveTitle(el, type) {
   el.contentEditable = false;
@@ -14,6 +15,9 @@ export async function saveTitle(el, type) {
 }
 
 export function handlePressStart(e, type, timerRef) {
+  // Prevent editing if selection mode is active
+  if (appState[type]?.selectionMode || appState[type]?.selectedItems?.size > 0) return;
+
   const titleSpan = e.target.closest('.item-text');
   if (!titleSpan) return;
   

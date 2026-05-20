@@ -8,7 +8,7 @@ import {
   hideLoginScreen, 
   updateHeaderForUser 
 } from "./ui/auth.js";
-import { switchTab } from "./ui/navigation.js";
+import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
 import { renderComprasSection } from "./ui/sections/compras.js";
 import { renderIdeasSection } from "./ui/sections/ideas.js";
 import { renderTareasSection } from "./ui/sections/tareas.js";
@@ -30,6 +30,7 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
 
   function init() {
     initStore();
+    initSwipeNavigation();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
@@ -75,7 +76,6 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
         if (item.classList.contains('recording')) return;
         
         switchTab(item.dataset.tab);
-        window.location.hash = item.dataset.tab;
       });
     });
   }

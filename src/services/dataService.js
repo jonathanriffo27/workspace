@@ -117,6 +117,13 @@ export async function addItem(type, data) {
       processedData.notas = sanitizeAndValidate(processedData.notas, MAX_TEXT_LENGTH);
     }
 
+    // Initialize position to be at the top
+    const currentItems = appState[type].items;
+    const minPos = currentItems.reduce((min, i) => {
+      return i.posicion !== undefined ? Math.min(min, i.posicion) : min;
+    }, 0);
+    processedData.posicion = minPos - 1;
+
     await addDoc(collections[type], {
       ...processedData,
       creadoEn: new Date(),
@@ -126,6 +133,91 @@ export async function addItem(type, data) {
   } catch (err) {
     console.error('Error adding item:', err);
     showToast('Error al añadir', 'error');
+    return false;
+  }
+}
+
+export async function moveItem(id, fromType, toType) {
+  try {
+    const item = appState[fromType].items.find(i => i.id === id);
+    if (!item) return false;
+
+    const newItem = {
+      creadoEn: item.creadoEn || new Date(),
+      userId: appState.userId
+    };
+
+    // Title mapping
+    const title = item.titulo || item.nombre || '';
+    if (toType === 'compras') newItem.nombre = title;
+    else newItem.titulo = title;
+
+    // Status mapping
+    const isDone = item.completado !== undefined ? item.completado : !!item.archivada;
+    if (toType === 'ideas') newItem.archivada = isDone;
+    else newItem.completado = isDone;
+
+    // Notes mapping (if target supports it)
+    if (toType !== 'compras') {
+      newItem.notas = item.notas || '';
+    }
+
+    // Default values for specifics
+    if (toType === 'compras') newItem.categoria = 'supermercado';
+    if (toType === 'tareas') {
+      newItem.prioridad = 'media';
+      newItem.fechaLimite = null;
+    }
+
+    await addDoc(collections[toType], newItem);
+    await deleteDoc(doc(db, fromType, id));
+    return true;
+  } catch (err) {
+    console.error('Error moving item:', err);
+    showToast('Error al mover elemento', 'error');
+    return false;
+  }
+}
+
+export async function reorderItem(id, type, direction, sortedItems) {
+  try {
+    const currentIndex = sortedItems.findIndex(i => i.id === id);
+    if (currentIndex === -1) return false;
+
+    const neighborIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (neighborIndex < 0 || neighborIndex >= sortedItems.length) return false;
+
+    const currentItem = sortedItems[currentIndex];
+    const neighborItem = sortedItems[neighborIndex];
+
+    // Ensure they are in the same completion group (usually reorder only within the same group)
+    const currentDone = currentItem.completado !== undefined ? currentItem.completado : !!currentItem.archivada;
+    const neighborDone = neighborItem.completado !== undefined ? neighborItem.completado : !!neighborItem.archivada;
+    if (currentDone !== neighborDone) return false;
+
+    // Use current index as fallback if posicion is missing
+    const currentPos = currentItem.posicion !== undefined ? currentItem.posicion : currentIndex;
+    const neighborPos = neighborItem.posicion !== undefined ? neighborItem.posicion : neighborIndex;
+
+    const docRef = doc(db, type, currentItem.id);
+    const neighborRef = doc(db, type, neighborItem.id);
+
+    // Swap positions
+    // If they have the same position (or both missing), we need to make them different
+    let newCurrentPos = neighborPos;
+    let newNeighborPos = currentPos;
+    
+    if (newCurrentPos === newNeighborPos) {
+      newCurrentPos = direction === 'up' ? neighborPos - 1 : neighborPos + 1;
+    }
+
+    await updateDoc(docRef, { posicion: newCurrentPos });
+    await updateDoc(neighborRef, { posicion: newNeighborPos });
+
+    return true;
+  } catch (err) {
+    console.error('Error reordering item:', err);
+    showToast('Error al reordenar', 'error');
     return false;
   }
 }
