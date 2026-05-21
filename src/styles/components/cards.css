@@ -13,7 +13,7 @@
   animation: slideIn 0.3s ease-out;
 }
 
-.item-card:active { transform: scale(0.99); }
+.item-card:active:not(.dragging) { transform: scale(0.99); }
 .item-card.completed { opacity: 0.4; }
 .item-card.completed .item-text, .item-card.completed .task-title { text-decoration: line-through; color: var(--text-tertiary); }
 
@@ -59,8 +59,37 @@
 .item-card.dragging {
   opacity: 0.8;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-  transform: scale(1.02);
   border-color: var(--accent-primary);
   background: var(--bg-tertiary);
   transition: none !important;
+  pointer-events: none;
+  animation: none;
 }
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-left: -8px;
+  color: var(--text-tertiary);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.drag-handle:hover,
+.drag-handle:active {
+  color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.item-card.dragging .drag-handle {
+  color: var(--accent-primary);
+  cursor: grabbing;
+}
+

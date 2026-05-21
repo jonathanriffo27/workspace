@@ -5,6 +5,8 @@ import { showModal } from '../components/modal.js';
 
 let selectionTimer = null;
 let currentSection = null;
+let startX = 0;
+let startY = 0;
 
 export function handleSelectionStart(e, section) {
   const card = e.target.closest('.item-card');
@@ -13,16 +15,32 @@ export function handleSelectionStart(e, section) {
   const isInput = e.target.closest('input, textarea, select, .is-editing');
   if (isInput) return;
 
-  // If clicking on title or category badge and NOT in selection mode, let the specific editor handle it
-  const isInteractive = e.target.closest('.item-text, .badge-categoria');
+  // If clicking on title, category badge, or drag handle and NOT in selection mode, let specific elements handle it
+  const isInteractive = e.target.closest('.item-text, .badge-categoria, .drag-handle');
   if (isInteractive && !appState[section].selectionMode && appState[section].selectedItems.size === 0) return;
 
   currentSection = section;
+  const touch = e.touches ? e.touches[0] : e;
+  startX = touch.clientX;
+  startY = touch.clientY;
+
   selectionTimer = setTimeout(() => {
     const id = card.dataset.id;
     enterSelectionMode(section);
     toggleSelection(section, id);
   }, 600);
+}
+
+export function handleSelectionMove(e) {
+  if (!selectionTimer) return;
+  const touch = e.touches ? e.touches[0] : e;
+  const deltaX = Math.abs(touch.clientX - startX);
+  const deltaY = Math.abs(touch.clientY - startY);
+  
+  if (deltaX > 8 || deltaY > 8) {
+    clearTimeout(selectionTimer);
+    selectionTimer = null;
+  }
 }
 
 export function enterSelectionMode(section) {
@@ -35,7 +53,9 @@ export function exitSelectionMode(section) {
 
 export function handleSelectionEnd() {
   clearTimeout(selectionTimer);
+  selectionTimer = null;
 }
+
 
 export function toggleSelection(section, id) {
   const selected = appState[section].selectedItems;

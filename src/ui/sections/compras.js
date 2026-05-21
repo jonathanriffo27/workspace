@@ -4,13 +4,16 @@ import { sortComprasItems } from '../../utils/sorting.js';
 import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
-import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
+import { handlePressStart, handlePressEnd, handlePressMove } from '../components/titleEditor.js';
 import { addItem, deleteItem, toggleCompleted, updateTitle, updateItemField, reorderItem } from '../../services/dataService.js';
-import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
+import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside, handleSelectionMove } from '../components/multiSelect.js';
 import { initSortable } from '../components/sortable.js';
 
 let pressTimer = { value: null };
-let categoryPressTimer;
+let categoryPressTimer = null;
+let categoryStartX = 0;
+let categoryStartY = 0;
+
 
 export function renderComprasSection() {
   const section = document.getElementById('compras-section');
@@ -71,6 +74,16 @@ export function renderComprasSection() {
       card.className = `item-card ${item.completado ? 'completed' : ''}`;
       card.dataset.id = item.id;
       card.innerHTML = `
+        <div class="drag-handle" title="Arrastrar para ordenar">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="9" cy="5" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="19" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="5" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="19" r="1.5" fill="currentColor"/>
+          </svg>
+        </div>
         <div class="checkbox ${item.completado ? 'checked' : ''}" data-id="${item.id}">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
@@ -172,6 +185,8 @@ function attachComprasEvents() {
   // Long press for editing title
   list.addEventListener('mousedown', (e) => handlePressStart(e, 'compras', pressTimer));
   list.addEventListener('touchstart', (e) => handlePressStart(e, 'compras', pressTimer), { passive: true });
+  list.addEventListener('mousemove', (e) => handlePressMove(e, pressTimer));
+  list.addEventListener('touchmove', (e) => handlePressMove(e, pressTimer), { passive: true });
   list.addEventListener('mouseup', () => handlePressEnd(pressTimer));
   list.addEventListener('mouseleave', () => handlePressEnd(pressTimer));
   list.addEventListener('touchend', () => handlePressEnd(pressTimer));
@@ -179,13 +194,17 @@ function attachComprasEvents() {
   // Category change logic
   list.addEventListener('mousedown', (e) => handleCategoryPressStart(e));
   list.addEventListener('touchstart', (e) => handleCategoryPressStart(e), { passive: true });
-  list.addEventListener('mouseup', () => clearTimeout(categoryPressTimer));
-  list.addEventListener('mouseleave', () => clearTimeout(categoryPressTimer));
-  list.addEventListener('touchend', () => clearTimeout(categoryPressTimer));
+  list.addEventListener('mousemove', (e) => handleCategoryPressMove(e));
+  list.addEventListener('touchmove', (e) => handleCategoryPressMove(e), { passive: true });
+  list.addEventListener('mouseup', () => { clearTimeout(categoryPressTimer); categoryPressTimer = null; });
+  list.addEventListener('mouseleave', () => { clearTimeout(categoryPressTimer); categoryPressTimer = null; });
+  list.addEventListener('touchend', () => { clearTimeout(categoryPressTimer); categoryPressTimer = null; });
 
   // Selection mode (long-press)
   list.addEventListener('mousedown', (e) => handleSelectionStart(e, 'compras'));
   list.addEventListener('touchstart', (e) => handleSelectionStart(e, 'compras'), { passive: true });
+  list.addEventListener('mousemove', (e) => handleSelectionMove(e));
+  list.addEventListener('touchmove', (e) => handleSelectionMove(e), { passive: true });
   list.addEventListener('mouseup', handleSelectionEnd);
   list.addEventListener('mouseleave', handleSelectionEnd);
   list.addEventListener('touchend', handleSelectionEnd);
@@ -210,12 +229,29 @@ function handleCategoryPressStart(e) {
   const badge = e.target.closest('.badge-categoria');
   if (!badge) return;
 
+  const touch = e.touches ? e.touches[0] : e;
+  categoryStartX = touch.clientX;
+  categoryStartY = touch.clientY;
+
   categoryPressTimer = setTimeout(() => {
     const id = badge.dataset.id;
     const currentCategory = badge.dataset.category;
     changeCategory(id, currentCategory);
   }, 600);
 }
+
+function handleCategoryPressMove(e) {
+  if (!categoryPressTimer) return;
+  const touch = e.touches ? e.touches[0] : e;
+  const deltaX = Math.abs(touch.clientX - categoryStartX);
+  const deltaY = Math.abs(touch.clientY - categoryStartY);
+  
+  if (deltaX > 8 || deltaY > 8) {
+    clearTimeout(categoryPressTimer);
+    categoryPressTimer = null;
+  }
+}
+
 
 async function changeCategory(id, currentCategory) {
   const categories = [

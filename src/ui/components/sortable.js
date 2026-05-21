@@ -7,67 +7,100 @@ export function initSortable(listId, type, getSortedItems) {
   if (!list) return;
 
   let dragEl = null;
-  let nextEl = null;
-  let pressTimer = null;
   let startY = 0;
-  let initialOffsetTop = 0;
   let isDragging = false;
-  const LONG_PRESS_DELAY = 400;
 
-  const onTouchStart = (e) => {
-    const card = e.target.closest('.item-card');
-    if (!card || e.target.closest('button, input, textarea, .is-editing')) return;
-
-    startY = e.touches[0].clientY;
-    
-    pressTimer = setTimeout(() => {
-      isDragging = true;
-      dragEl = card;
-      initialOffsetTop = dragEl.offsetTop;
-      
-      dragEl.classList.add('dragging');
-      if ('vibrate' in navigator) navigator.vibrate(50);
-      
-      // Disable scrolling
-      document.body.style.overflow = 'hidden';
-      document.body.style.userSelect = 'none';
-    }, LONG_PRESS_DELAY);
+  const getCoordinates = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    return { clientX: e.clientX, clientY: e.clientY };
   };
 
-  const onTouchMove = (e) => {
-    if (!isDragging || !dragEl) {
-      if (pressTimer) {
-          const deltaY = Math.abs(e.touches[0].clientY - startY);
-          if (deltaY > 10) clearTimeout(pressTimer);
-      }
-      return;
-    }
+  const onStart = (e) => {
+    const dragHandle = e.target.closest('.drag-handle');
+    if (!dragHandle) return;
 
-    e.preventDefault();
-    const touch = e.touches[0];
-    const currentY = touch.clientY;
+    // Prevent sorting if selection mode is active
+    if (appState[type]?.selectionMode || appState[type]?.selectedItems?.size > 0) return;
+
+    const card = e.target.closest('.item-card');
+    if (!card) return;
+
+    // Prevent default to avoid scrolling/selection during drag
+    if (e.cancelable) e.preventDefault();
+
+    const coords = getCoordinates(e);
+    startY = coords.clientY;
+
+    isDragging = true;
+    dragEl = card;
+
+    // Apply dragging class and immediately force transform to none
+    // so there's no flash from the CSS transform: scale(1.02)
+    dragEl.classList.add('dragging');
+    dragEl.style.transform = 'translateY(0px)';
+
+    if ('vibrate' in navigator) navigator.vibrate(50);
+
+    // Disable scrolling and user selection
+    document.body.style.overflow = 'hidden';
+    document.body.style.userSelect = 'none';
+
+    // Register global mouse tracking events dynamically on drag start
+    if (e.type === 'mousedown') {
+      window.addEventListener('mousemove', onMove, { passive: false });
+      window.addEventListener('mouseup', onEnd);
+    }
+  };
+
+  const onMove = (e) => {
+    if (!isDragging || !dragEl) return;
+
+    if (e.cancelable) e.preventDefault();
+    const coords = getCoordinates(e);
+    const currentY = coords.clientY;
     const deltaY = currentY - startY;
 
     dragEl.style.transform = `translateY(${deltaY}px)`;
     dragEl.style.zIndex = '1000';
 
-    // Find the element currently under the touch
-    const overEl = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.item-card');
-    
+    // Since .item-card.dragging has pointer-events: none,
+    // document.elementFromPoint sees through it to the card underneath.
+    const overEl = document.elementFromPoint(coords.clientX, coords.clientY)?.closest('.item-card');
+
     if (overEl && overEl !== dragEl && overEl.parentNode === list) {
-        const rect = overEl.getBoundingClientRect();
-        const midpoint = rect.top + rect.height / 2;
-        
-        if (currentY < midpoint) {
-            list.insertBefore(dragEl, overEl);
-        } else {
-            list.insertBefore(dragEl, overEl.nextSibling);
-        }
+      const overRect = overEl.getBoundingClientRect();
+      const midpoint = overRect.top + overRect.height / 2;
+
+      // Measure position before DOM move
+      const rectBefore = dragEl.getBoundingClientRect();
+
+      if (currentY < midpoint) {
+        list.insertBefore(dragEl, overEl);
+      } else {
+        list.insertBefore(dragEl, overEl.nextSibling);
+      }
+
+      // Measure position after DOM move
+      const rectAfter = dragEl.getBoundingClientRect();
+
+      // Compensate startY so the visual position stays locked to the cursor
+      startY += rectAfter.top - rectBefore.top;
+
+      // Re-apply transform with corrected startY in the same frame
+      const newDeltaY = currentY - startY;
+      dragEl.style.transform = `translateY(${newDeltaY}px)`;
     }
   };
 
-  const onTouchEnd = async () => {
-    clearTimeout(pressTimer);
+  const onEnd = async (e) => {
+    // Unsubscribe global mouse event listeners
+    if (e && (e.type === 'mouseup' || e.type === 'mouseleave')) {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+    }
+
     if (!isDragging || !dragEl) {
       reset();
       return;
@@ -80,23 +113,23 @@ export function initSortable(listId, type, getSortedItems) {
     // Re-enable scrolling
     document.body.style.overflow = '';
     document.body.style.userSelect = '';
-    
+
     dragEl.classList.remove('dragging');
     dragEl.style.transform = '';
     dragEl.style.zIndex = '';
 
-    // Calculate new positions
+    // Calculate new positions and sync to Firestore
     const updates = [];
     newOrderIds.forEach((id, index) => {
-        const item = items.find(i => i.id === id);
-        if (item && item.posicion !== index) {
-            const docRef = doc(db, type, id);
-            updates.push(updateDoc(docRef, { posicion: index }));
-        }
+      const item = items.find(i => i.id === id);
+      if (item && item.posicion !== index) {
+        const docRef = doc(db, type, id);
+        updates.push(updateDoc(docRef, { posicion: index }));
+      }
     });
 
     if (updates.length > 0) {
-        await Promise.all(updates);
+      await Promise.all(updates);
     }
 
     reset();
@@ -109,8 +142,12 @@ export function initSortable(listId, type, getSortedItems) {
     document.body.style.userSelect = '';
   };
 
-  list.addEventListener('touchstart', onTouchStart, { passive: false });
-  list.addEventListener('touchmove', onTouchMove, { passive: false });
-  list.addEventListener('touchend', onTouchEnd);
-  list.addEventListener('touchcancel', onTouchEnd);
+  // Touch events for mobile
+  list.addEventListener('touchstart', onStart, { passive: false });
+  list.addEventListener('touchmove', onMove, { passive: false });
+  list.addEventListener('touchend', onEnd);
+  list.addEventListener('touchcancel', onEnd);
+
+  // Mouse events for desktop (mousedown begins drag, mousemove/mouseup are tracked globally)
+  list.addEventListener('mousedown', onStart);
 }

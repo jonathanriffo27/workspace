@@ -14,6 +14,9 @@ export async function saveTitle(el, type) {
   }
 }
 
+let startX = 0;
+let startY = 0;
+
 export function handlePressStart(e, type, timerRef) {
   // Prevent editing if selection mode is active
   if (appState[type]?.selectionMode || appState[type]?.selectedItems?.size > 0) return;
@@ -21,6 +24,10 @@ export function handlePressStart(e, type, timerRef) {
   const titleSpan = e.target.closest('.item-text');
   if (!titleSpan) return;
   
+  const touch = e.touches ? e.touches[0] : e;
+  startX = touch.clientX;
+  startY = touch.clientY;
+
   timerRef.value = setTimeout(() => {
     // Blur any currently editing element
     document.querySelector('.item-text.is-editing')?.blur();
@@ -65,6 +72,20 @@ export function handlePressStart(e, type, timerRef) {
   }, 600);
 }
 
+export function handlePressMove(e, timerRef) {
+  if (!timerRef.value) return;
+  const touch = e.touches ? e.touches[0] : e;
+  const deltaX = Math.abs(touch.clientX - startX);
+  const deltaY = Math.abs(touch.clientY - startY);
+  
+  if (deltaX > 8 || deltaY > 8) {
+    clearTimeout(timerRef.value);
+    timerRef.value = null;
+  }
+}
+
 export function handlePressEnd(timerRef) {
   clearTimeout(timerRef.value);
+  timerRef.value = null;
 }
+

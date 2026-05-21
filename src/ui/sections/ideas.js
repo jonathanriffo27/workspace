@@ -3,9 +3,9 @@ import { sortIdeasItems } from '../../utils/sorting.js';
 import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
-import { handlePressStart, handlePressEnd } from '../components/titleEditor.js';
+import { handlePressStart, handlePressEnd, handlePressMove } from '../components/titleEditor.js';
 import { addItem, deleteItem, toggleCompleted, updateNotes, reorderItem } from '../../services/dataService.js';
-import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside } from '../components/multiSelect.js';
+import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside, handleSelectionMove } from '../components/multiSelect.js';
 import { initSortable } from '../components/sortable.js';
 
 let pressTimer = { value: null };
@@ -71,8 +71,17 @@ export function renderIdeasSection() {
       const expandIcon = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M6 9l6 6 6-6"/></svg>`;
       const saveIcon = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`;
 
-      // Use innerHTML for static structure only
       card.innerHTML = `
+        <div class="drag-handle" title="Arrastrar para ordenar">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="9" cy="5" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="19" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="5" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="19" r="1.5" fill="currentColor"/>
+          </svg>
+        </div>
         <div class="checkbox ${idea.archivada ? 'checked' : ''}" data-id="${idea.id}">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
@@ -196,6 +205,8 @@ function attachIdeasEvents() {
 
   list.addEventListener('mousedown', (e) => handlePressStart(e, 'ideas', pressTimer));
   list.addEventListener('touchstart', (e) => handlePressStart(e, 'ideas', pressTimer), { passive: true });
+  list.addEventListener('mousemove', (e) => handlePressMove(e, pressTimer));
+  list.addEventListener('touchmove', (e) => handlePressMove(e, pressTimer), { passive: true });
   list.addEventListener('mouseup', () => handlePressEnd(pressTimer));
   list.addEventListener('mouseleave', () => handlePressEnd(pressTimer));
   list.addEventListener('touchend', () => handlePressEnd(pressTimer));
@@ -203,6 +214,8 @@ function attachIdeasEvents() {
   // Selection mode (long-press)
   list.addEventListener('mousedown', (e) => handleSelectionStart(e, 'ideas'));
   list.addEventListener('touchstart', (e) => handleSelectionStart(e, 'ideas'), { passive: true });
+  list.addEventListener('mousemove', (e) => handleSelectionMove(e));
+  list.addEventListener('touchmove', (e) => handleSelectionMove(e), { passive: true });
   list.addEventListener('mouseup', handleSelectionEnd);
   list.addEventListener('mouseleave', handleSelectionEnd);
   list.addEventListener('touchend', handleSelectionEnd);
