@@ -47,6 +47,19 @@ async function migrateDataIfNecessary(userId) {
   }
 }
 
+function safeToMillis(val) {
+  if (!val) return Date.now();
+  if (typeof val.toMillis === 'function') return val.toMillis();
+  if (val instanceof Date) return val.getTime();
+  if (typeof val === 'number') return val;
+  if (typeof val === 'string') {
+    const parsed = Date.parse(val);
+    return isNaN(parsed) ? Date.now() : parsed;
+  }
+  if (typeof val.seconds === 'number') return val.seconds * 1000;
+  return Date.now();
+}
+
 export function initFirestoreSync() {
   if (!appState.userId) return;
 
@@ -64,7 +77,7 @@ export function initFirestoreSync() {
     appState.compras.items = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      creadoEn: doc.data().creadoEn?.toMillis() || Date.now()
+      creadoEn: safeToMillis(doc.data().creadoEn)
     }));
     saveToStorage(STORAGE_KEYS.compras, appState.compras.items);
     notify();
@@ -75,7 +88,7 @@ export function initFirestoreSync() {
     appState.ideas.items = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      creadoEn: doc.data().creadoEn?.toMillis() || Date.now()
+      creadoEn: safeToMillis(doc.data().creadoEn)
     }));
     saveToStorage(STORAGE_KEYS.ideas, appState.ideas.items);
     notify();
@@ -86,7 +99,7 @@ export function initFirestoreSync() {
     appState.tareas.items = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      creadoEn: doc.data().creadoEn?.toMillis() || Date.now(),
+      creadoEn: safeToMillis(doc.data().creadoEn),
       fechaLimite: doc.data().fechaLimite
     }));
     saveToStorage(STORAGE_KEYS.tareas, appState.tareas.items);
