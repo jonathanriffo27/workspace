@@ -46,7 +46,21 @@ export function renderTareasSection() {
     </div>
 
     <div class="items-list" id="tareas-list">
-      ${sorted.length === 0 ? `
+      ${appState.tareas.loading && sorted.length === 0 ? `
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div></div>
+        </div>
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div></div>
+        </div>
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div></div>
+        </div>
+      ` : ''}
+      ${sorted.length === 0 && !(appState.tareas.loading && sorted.length === 0) ? `
         <div class="empty-state">
           <div class="empty-icon">
             <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -107,7 +121,7 @@ export function renderTareasSection() {
               </div>
             </div>
           </div>
-
+ 
           <div class="task-edit-fields">
             <div class="task-content-col">
               <div class="task-row-edit">
@@ -132,9 +146,18 @@ export function renderTareasSection() {
       // Safely set user-provided content
       card.querySelector('.item-text').textContent = tarea.titulo || '';
       card.querySelector('textarea').value = tarea.notas || '';
-
+ 
       list.appendChild(card);
     });
+
+    if (appState.tareas.hasMore) {
+      const loadMoreContainer = document.createElement('div');
+      loadMoreContainer.style.cssText = 'display: flex; justify-content: center; padding: 16px 0 32px;';
+      loadMoreContainer.innerHTML = `
+        <button id="tareas-load-more-btn" class="modal-btn secondary" style="width: 100%; max-width: 200px;">Cargar más</button>
+      `;
+      list.appendChild(loadMoreContainer);
+    }
   }
 
   // Initialize gesture reordering
@@ -166,6 +189,14 @@ function attachTareasEvents() {
 
   addBtn.addEventListener('click', handleAdd);
   input.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAdd(); });
+
+  const loadMoreBtn = document.getElementById('tareas-load-more-btn');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', async () => {
+      const { loadMoreItems } = await import('../../services/firebaseSync.js');
+      loadMoreItems('tareas');
+    });
+  }
 
   statsBar.addEventListener('click', (e) => {
     const statItem = e.target.closest('.stat-item');

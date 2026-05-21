@@ -2,17 +2,12 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase.js";
 import { appState, initStore, subscribe } from "./store.js";
 import { initFirestoreSync } from "./services/firebaseSync.js";
-import { initVoiceCapture } from "./services/voiceService.js";
-import { initTaskArchiver } from "./services/taskArchiver.js";
 import { 
   showLoginScreen, 
   hideLoginScreen, 
   updateHeaderForUser 
 } from "./ui/auth.js";
 import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
-import { renderComprasSection } from "./ui/sections/compras.js";
-import { renderIdeasSection } from "./ui/sections/ideas.js";
-import { renderTareasSection } from "./ui/sections/tareas.js";
 
 (function() {
   'use strict';
@@ -21,12 +16,14 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
   subscribe((state) => {
     if (state.authLoading) return;
     
-    // Only re-render the active tab if necessary
-    // In a more complex app, we'd have finer grained updates
     const currentTab = state.activeTab;
-    if (currentTab === 'compras') renderComprasSection();
-    else if (currentTab === 'ideas') renderIdeasSection();
-    else if (currentTab === 'tareas') renderTareasSection();
+    if (currentTab === 'compras') {
+      import("./ui/sections/compras.js").then(({ renderComprasSection }) => renderComprasSection());
+    } else if (currentTab === 'ideas') {
+      import("./ui/sections/ideas.js").then(({ renderIdeasSection }) => renderIdeasSection());
+    } else if (currentTab === 'tareas') {
+      import("./ui/sections/tareas.js").then(({ renderTareasSection }) => renderTareasSection());
+    }
   });
 
   function init() {
@@ -39,12 +36,21 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
       });
     }
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       appState.user = user;
       appState.userId = user ? user.uid : null;
       appState.authLoading = false;
 
       if (user) {
+        localStorage.setItem('workspace_last_user_id', user.uid);
+        
+        // Reload storage items with user isolation key
+        const { loadFromStorage } = await import("./utils/storage.js");
+        const { STORAGE_KEYS } = await import("./store.js");
+        appState.compras.items = loadFromStorage(`${STORAGE_KEYS.compras}_${user.uid}`);
+        appState.ideas.items = loadFromStorage(`${STORAGE_KEYS.ideas}_${user.uid}`);
+        appState.tareas.items = loadFromStorage(`${STORAGE_KEYS.tareas}_${user.uid}`);
+
         hideLoginScreen();
         updateHeaderForUser(user);
         
@@ -53,8 +59,8 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
         switchTab(initialTab);
         
         initFirestoreSync();
-        initVoiceCapture();
-        initTaskArchiver();
+        import("./services/voiceService.js").then(({ initVoiceCapture }) => initVoiceCapture());
+        import("./services/taskArchiver.js").then(({ initTaskArchiver }) => initTaskArchiver());
       } else {
         showLoginScreen();
         updateHeaderForUser(null);

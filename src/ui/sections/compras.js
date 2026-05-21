@@ -54,7 +54,21 @@ export function renderComprasSection() {
     </div>
 
     <div class="items-list" id="compras-list">
-      ${showEmpty ? `
+      ${appState.compras.loading && sorted.length === 0 ? `
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div><div class="skeleton-badge"></div></div>
+        </div>
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div><div class="skeleton-badge"></div></div>
+        </div>
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div><div class="skeleton-badge"></div></div>
+        </div>
+      ` : ''}
+      ${showEmpty && !(appState.compras.loading && sorted.length === 0) ? `
         <div class="empty-state">
           <div class="empty-icon">
             <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none"><path d="M3 3h18v18H3zM9 21V9h6v12M9 9h6M9 9v0M15 9v0" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -105,6 +119,15 @@ export function renderComprasSection() {
 
       list.appendChild(card);
     });
+
+    if (appState.compras.hasMore) {
+      const loadMoreContainer = document.createElement('div');
+      loadMoreContainer.style.cssText = 'display: flex; justify-content: center; padding: 16px 0 32px;';
+      loadMoreContainer.innerHTML = `
+        <button id="compras-load-more-btn" class="modal-btn secondary" style="width: 100%; max-width: 200px;">Cargar más</button>
+      `;
+      list.appendChild(loadMoreContainer);
+    }
   }
 
   // Initialize gesture reordering
@@ -136,6 +159,14 @@ function attachComprasEvents() {
 
   addBtn.addEventListener('click', handleAdd);
   input.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAdd(); });
+
+  const loadMoreBtn = document.getElementById('compras-load-more-btn');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', async () => {
+      const { loadMoreItems } = await import('../../services/firebaseSync.js');
+      loadMoreItems('compras');
+    });
+  }
 
   list.addEventListener('click', async (e) => {
     const checkbox = e.target.closest('.checkbox');

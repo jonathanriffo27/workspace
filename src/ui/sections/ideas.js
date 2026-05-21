@@ -49,7 +49,21 @@ export function renderIdeasSection() {
     </div>
 
     <div class="items-list" id="ideas-list">
-      ${sorted.length === 0 ? `
+      ${appState.ideas.loading && sorted.length === 0 ? `
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div></div>
+        </div>
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div></div>
+        </div>
+        <div class="item-card skeleton-card">
+          <div class="skeleton-checkbox"></div>
+          <div class="skeleton-content"><div class="skeleton-text"></div></div>
+        </div>
+      ` : ''}
+      ${sorted.length === 0 && !(appState.ideas.loading && sorted.length === 0) ? `
         <div class="empty-state">
           <div class="empty-icon">
             <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -112,6 +126,15 @@ export function renderIdeasSection() {
       
       list.appendChild(card);
     });
+
+    if (appState.ideas.hasMore) {
+      const loadMoreContainer = document.createElement('div');
+      loadMoreContainer.style.cssText = 'display: flex; justify-content: center; padding: 16px 0 32px;';
+      loadMoreContainer.innerHTML = `
+        <button id="ideas-load-more-btn" class="modal-btn secondary" style="width: 100%; max-width: 200px;">Cargar más</button>
+      `;
+      list.appendChild(loadMoreContainer);
+    }
   }
 
   // Initialize gesture reordering
@@ -146,6 +169,14 @@ function attachIdeasEvents() {
 
   addBtn.addEventListener('click', handleAdd);
   titleInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAdd(); });
+
+  const loadMoreBtn = document.getElementById('ideas-load-more-btn');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', async () => {
+      const { loadMoreItems } = await import('../../services/firebaseSync.js');
+      loadMoreItems('ideas');
+    });
+  }
 
   list.addEventListener('click', async (e) => {
     const checkbox = e.target.closest('.checkbox');

@@ -18,21 +18,30 @@ export const appState = {
     items: [],
     filters: [],
     selectedItems: new Set(),
-    selectionMode: false
+    selectionMode: false,
+    loading: true,
+    limit: 50,
+    hasMore: false
   },
   ideas: {
     items: [],
     filter: 'todas',
     searchQuery: '',
     selectedItems: new Set(),
-    selectionMode: false
+    selectionMode: false,
+    loading: true,
+    limit: 50,
+    hasMore: false
   },
   tareas: {
     items: [],
     filter: 'todas',
     newTaskPriority: 'media',
     selectedItems: new Set(),
-    selectionMode: false
+    selectionMode: false,
+    loading: true,
+    limit: 50,
+    hasMore: false
   },
   ui: {
     toast: null,
@@ -52,9 +61,16 @@ export function notify() {
 }
 
 export function initStore() {
-  appState.compras.items = loadFromStorage(STORAGE_KEYS.compras);
-  appState.ideas.items = loadFromStorage(STORAGE_KEYS.ideas);
-  appState.tareas.items = loadFromStorage(STORAGE_KEYS.tareas);
+  const lastUserId = localStorage.getItem('workspace_last_user_id');
+  if (lastUserId) {
+    appState.compras.items = loadFromStorage(`${STORAGE_KEYS.compras}_${lastUserId}`);
+    appState.ideas.items = loadFromStorage(`${STORAGE_KEYS.ideas}_${lastUserId}`);
+    appState.tareas.items = loadFromStorage(`${STORAGE_KEYS.tareas}_${lastUserId}`);
+  } else {
+    appState.compras.items = loadFromStorage(STORAGE_KEYS.compras);
+    appState.ideas.items = loadFromStorage(STORAGE_KEYS.ideas);
+    appState.tareas.items = loadFromStorage(STORAGE_KEYS.tareas);
+  }
   notify();
 }
 

@@ -5,7 +5,8 @@ import {
   orderBy,
   where,
   getDocs,
-  serverTimestamp
+  serverTimestamp,
+  limit
 } from "firebase/firestore";
 import { collections } from "../firebase.js";
 import { appState, STORAGE_KEYS, notify } from "../store.js";
@@ -18,11 +19,11 @@ async function migrateDataIfNecessary(userId) {
     { key: STORAGE_KEYS.tareas, collection: collections.tareas, type: 'tareas' }
   ];
 
-  for (const col of collectionsToCheck) {
+  const promises = collectionsToCheck.map(async (col) => {
     const localData = loadFromStorage(col.key);
     if (localData.length > 0) {
       try {
-        const q = query(col.collection, where("userId", "==", userId));
+        const q = query(col.collection, where("userId", "==", userId), limit(1));
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
@@ -44,7 +45,9 @@ async function migrateDataIfNecessary(userId) {
         console.error(`Error migrating ${col.type}:`, err);
       }
     }
-  }
+  });
+
+  await Promise.all(promises);
 }
 
 function safeToMillis(val) {
@@ -60,7 +63,95 @@ function safeToMillis(val) {
   return Date.now();
 }
 
-export function initFirestoreSync() {
+let unsubCompras = null;
+let unsubIdeas = null;
+let unsubTareas = null;
+
+export function initComprasSync() {
+  const userId = appState.userId;
+  if (!userId) return;
+
+  if (unsubCompras) {
+    unsubCompras();
+    appState.unsubscribes = appState.unsubscribes.filter(fn => fn !== unsubCompras);
+  }
+
+  const qCompras = query(collections.compras, where("userId", "==", userId), orderBy("creadoEn", "desc"), limit(appState.compras.limit));
+  unsubCompras = onSnapshot(qCompras, (snapshot) => {
+    appState.compras.items = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      creadoEn: safeToMillis(doc.data().creadoEn)
+    }));
+    appState.compras.hasMore = snapshot.docs.length === appState.compras.limit;
+    appState.compras.loading = false;
+    saveToStorage(`${STORAGE_KEYS.compras}_${userId}`, appState.compras.items);
+    notify();
+  });
+  appState.unsubscribes.push(unsubCompras);
+}
+
+export function initIdeasSync() {
+  const userId = appState.userId;
+  if (!userId) return;
+
+  if (unsubIdeas) {
+    unsubIdeas();
+    appState.unsubscribes = appState.unsubscribes.filter(fn => fn !== unsubIdeas);
+  }
+
+  const qIdeas = query(collections.ideas, where("userId", "==", userId), orderBy("creadoEn", "desc"), limit(appState.ideas.limit));
+  unsubIdeas = onSnapshot(qIdeas, (snapshot) => {
+    appState.ideas.items = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      creadoEn: safeToMillis(doc.data().creadoEn)
+    }));
+    appState.ideas.hasMore = snapshot.docs.length === appState.ideas.limit;
+    appState.ideas.loading = false;
+    saveToStorage(`${STORAGE_KEYS.ideas}_${userId}`, appState.ideas.items);
+    notify();
+  });
+  appState.unsubscribes.push(unsubIdeas);
+}
+
+export function initTareasSync() {
+  const userId = appState.userId;
+  if (!userId) return;
+
+  if (unsubTareas) {
+    unsubTareas();
+    appState.unsubscribes = appState.unsubscribes.filter(fn => fn !== unsubTareas);
+  }
+
+  const qTareas = query(collections.tareas, where("userId", "==", userId), orderBy("creadoEn", "desc"), limit(appState.tareas.limit));
+  unsubTareas = onSnapshot(qTareas, (snapshot) => {
+    appState.tareas.items = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      creadoEn: safeToMillis(doc.data().creadoEn),
+      fechaLimite: doc.data().fechaLimite
+    }));
+    appState.tareas.hasMore = snapshot.docs.length === appState.tareas.limit;
+    appState.tareas.loading = false;
+    saveToStorage(`${STORAGE_KEYS.tareas}_${userId}`, appState.tareas.items);
+    notify();
+  });
+  appState.unsubscribes.push(unsubTareas);
+}
+
+export function loadMoreItems(type) {
+  if (appState[type].hasMore) {
+    appState[type].limit += 50;
+    appState[type].loading = true;
+    notify();
+    if (type === 'compras') initComprasSync();
+    else if (type === 'ideas') initIdeasSync();
+    else if (type === 'tareas') initTareasSync();
+  }
+}
+
+export async function initFirestoreSync() {
   if (!appState.userId) return;
 
   if (appState.firestoreInitialized) return;
@@ -69,40 +160,13 @@ export function initFirestoreSync() {
   const userId = appState.userId;
   appState.unsubscribes.forEach(fn => fn());
   appState.unsubscribes = [];
+  unsubCompras = null;
+  unsubIdeas = null;
+  unsubTareas = null;
 
-  migrateDataIfNecessary(userId);
+  await migrateDataIfNecessary(userId);
 
-  const qCompras = query(collections.compras, where("userId", "==", userId), orderBy("creadoEn", "desc"));
-  appState.unsubscribes.push(onSnapshot(qCompras, (snapshot) => {
-    appState.compras.items = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      creadoEn: safeToMillis(doc.data().creadoEn)
-    }));
-    saveToStorage(STORAGE_KEYS.compras, appState.compras.items);
-    notify();
-  }));
-
-  const qIdeas = query(collections.ideas, where("userId", "==", userId), orderBy("creadoEn", "desc"));
-  appState.unsubscribes.push(onSnapshot(qIdeas, (snapshot) => {
-    appState.ideas.items = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      creadoEn: safeToMillis(doc.data().creadoEn)
-    }));
-    saveToStorage(STORAGE_KEYS.ideas, appState.ideas.items);
-    notify();
-  }));
-
-  const qTareas = query(collections.tareas, where("userId", "==", userId), orderBy("creadoEn", "desc"));
-  appState.unsubscribes.push(onSnapshot(qTareas, (snapshot) => {
-    appState.tareas.items = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      creadoEn: safeToMillis(doc.data().creadoEn),
-      fechaLimite: doc.data().fechaLimite
-    }));
-    saveToStorage(STORAGE_KEYS.tareas, appState.tareas.items);
-    notify();
-  }));
+  initComprasSync();
+  initIdeasSync();
+  initTareasSync();
 }
