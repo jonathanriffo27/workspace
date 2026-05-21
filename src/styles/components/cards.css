@@ -78,17 +78,24 @@
   border-radius: 50%; 
   display: inline-block; 
   flex-shrink: 0; 
+  background: var(--priority-media);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
 }
-.priority-dot.alta { 
-  background: var(--priority-alta); 
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); 
+
+.priority-toggle-btn {
+  color: var(--text-tertiary);
+  transition: color 0.2s ease;
 }
-.priority-dot.media { 
-  background: var(--priority-media); 
+.priority-toggle-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  transition: fill 0.2s ease;
 }
-.priority-dot.baja { 
-  background: var(--priority-baja); 
-  opacity: 0.5; 
+.priority-toggle-btn.active {
+  color: var(--priority-media);
+}
+.priority-toggle-btn.active svg {
+  fill: currentColor !important;
 }
 
 .item-card.selected {

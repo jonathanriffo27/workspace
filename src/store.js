@@ -38,7 +38,7 @@ export const appState = {
   tareas: {
     items: [],
     filter: 'todas',
-    newTaskPriority: 'media',
+
     selectedItems: new Set(),
     selectionMode: false,
     loading: true,
@@ -78,6 +78,5 @@ export function initStore() {
 }
 
 export const CATEGORIAS = ['supermercado', 'internet', 'farmacia', 'otros'];
-export const PRIORIDADES = ['alta', 'media', 'baja'];
 export const TAREA_FILTERS = ['todas', 'pendientes', 'archivadas'];
 export { STORAGE_KEYS };

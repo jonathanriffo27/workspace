@@ -38,7 +38,6 @@ export function sortIdeasItems(items) {
 }
 
 export function sortTareasItems(items) {
-  const priorityOrder = { alta: 0, media: 1, baja: 2 };
   return [...items].sort((a, b) => {
     const archA = !!a.archivada;
     const archB = !!b.archivada;
@@ -48,14 +47,13 @@ export function sortTareasItems(items) {
     const compB = !!b.completado;
     if (compA !== compB) return compA ? 1 : -1;
     
+    const prioA = !!a.prioridad;
+    const prioB = !!b.prioridad;
+    if (prioA !== prioB) return prioA ? -1 : 1;
+
     const posA = (a.posicion !== undefined && a.posicion !== null) ? Number(a.posicion) : Number.MAX_SAFE_INTEGER;
     const posB = (b.posicion !== undefined && b.posicion !== null) ? Number(b.posicion) : Number.MAX_SAFE_INTEGER;
-    
     if (posA !== posB) return posA - posB;
-
-    const prioA = priorityOrder[a.prioridad] ?? 1;
-    const prioB = priorityOrder[b.prioridad] ?? 1;
-    if (prioA !== prioB) return prioA - prioB;
 
     if (a.fechaLimite && b.fechaLimite) return a.fechaLimite - b.fechaLimite;
     if (a.fechaLimite) return -1;

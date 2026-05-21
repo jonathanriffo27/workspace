@@ -66,7 +66,7 @@
 .item-card.task .task-meta-expand-wrapper {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 5px;
   margin-left: auto;
   flex-shrink: 0;
 }

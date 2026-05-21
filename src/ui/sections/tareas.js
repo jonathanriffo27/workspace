@@ -1,5 +1,5 @@
-import { appState, notify, PRIORIDADES } from '../../store.js';
-import { getPriorityLabel, formatDate } from '../../utils/formatting.js';
+import { appState, notify } from '../../store.js';
+import { formatDate } from '../../utils/formatting.js';
 import { sortTareasItems } from '../../utils/sorting.js';
 import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
@@ -110,7 +110,9 @@ export function renderTareasSection() {
                     ${formatDate(tarea.fechaLimite)}
                   </span>
                 ` : ''}
-                <span class="priority-dot ${tarea.prioridad}" title="Prioridad: ${getPriorityLabel(tarea.prioridad)}"></span>
+                <button class="btn-icon priority-toggle-btn ${tarea.prioridad ? 'active' : ''}" data-id="${tarea.id}" title="${tarea.prioridad ? 'Quitar prioridad' : 'Destacar tarea'}">
+                  <svg viewBox="0 0 24 24" fill="${tarea.prioridad ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </button>
               </div>
               <div class="item-actions-group">
                 <button class="btn-icon delete-btn" data-id="${tarea.id}" title="Eliminar tarea">
@@ -126,9 +128,7 @@ export function renderTareasSection() {
           <div class="task-edit-fields">
             <div class="task-content-col">
               <div class="task-row-edit">
-                <select class="priority-select" data-id="${tarea.id}">
-                  ${PRIORIDADES.map(p => `<option value="${p}" ${tarea.prioridad === p ? 'selected' : ''}>${getPriorityLabel(p)}</option>`).join('')}
-                </select>
+
                 <div class="studio-date-wrapper">
                   <input type="date" class="studio-date-input" value="${fechaLimiteValue}">
                 </div>
@@ -186,7 +186,7 @@ function attachTareasEvents() {
   const handleAdd = async () => {
     const titulo = input.value.trim();
     if (!titulo) return;
-    if (await addItem('tareas', { titulo, prioridad: 'media', fechaLimite: null, notas: '', completado: false })) {
+    if (await addItem('tareas', { titulo, prioridad: false, fechaLimite: null, notas: '', completado: false })) {
         input.value = '';
         showToast('Tarea añadida', 'success');
     }
@@ -216,6 +216,7 @@ function attachTareasEvents() {
     const deleteBtn = e.target.closest('.delete-btn');
     const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row') || e.target.closest('.item-text');
     const saveBtn = e.target.closest('.save-task-btn');
+    const priorityToggleBtn = e.target.closest('.priority-toggle-btn');
     const card = e.target.closest('.item-card');
 
     // Handle click selection when in selection mode
@@ -231,6 +232,16 @@ function attachTareasEvents() {
       if (tarea) toggleCompleted(id, 'tareas', tarea.completado);
     }
 
+    if (priorityToggleBtn) {
+      const id = priorityToggleBtn.dataset.id;
+      const tarea = appState.tareas.items.find(i => i.id === id);
+      if (tarea) {
+        if (await updateTaskMeta(id, { prioridad: !tarea.prioridad })) {
+          showToast('Prioridad actualizada', 'success');
+        }
+      }
+    }
+
     if (deleteBtn) {
       const id = deleteBtn.dataset.id;
       showModal('Eliminar tarea', '<p>¿Estás seguro de que quieres eliminar esta tarea?</p>', [
@@ -244,7 +255,7 @@ function attachTareasEvents() {
       });
     }
 
-    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.priority-select') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea') && !e.target.closest('.is-editing')) {
+    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.priority-toggle-btn') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea') && !e.target.closest('.is-editing')) {
       const cardEl = expandBtn.closest('.item-card');
       list.querySelectorAll('.item-card.expanded').forEach(c => {
         if (c !== cardEl) c.classList.remove('expanded');
@@ -271,15 +282,7 @@ function attachTareasEvents() {
   document.addEventListener('click', (e) => handleClickOutside(e, 'tareas'));
 
   list.addEventListener('change', async (e) => {
-    const prioritySelect = e.target.closest('.priority-select');
     const dateInput = e.target.closest('.studio-date-input');
-
-    if (prioritySelect) {
-      const id = prioritySelect.dataset.id;
-      if (await updateTaskMeta(id, { prioridad: prioritySelect.value })) {
-        showToast('Prioridad actualizada', 'success');
-      }
-    }
 
     if (dateInput) {
       const card = dateInput.closest('.item-card');

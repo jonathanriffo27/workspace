@@ -186,7 +186,7 @@ async function processVoiceCapture(text) {
         return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', posicion: currentMinPos.compras, completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else if (module === 'tareas') {
         currentMinPos.tareas -= 1;
-        return addDoc(collections.tareas, { titulo: title, prioridad: subcat || 'media', posicion: currentMinPos.tareas, fechaLimite: null, notas: notes || '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        return addDoc(collections.tareas, { titulo: title, prioridad: subcat || false, posicion: currentMinPos.tareas, fechaLimite: null, notas: notes || '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else {
         currentMinPos.ideas -= 1;
         return addDoc(collections.ideas, { titulo: title, notas: notes || '', posicion: currentMinPos.ideas, archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });
@@ -303,7 +303,7 @@ function categorizeInputHeuristic(text) {
     subcat = 'supermercado';
   } else if (containsWholeWord(t, taskKeywords)) {
     module = 'tareas';
-    subcat = 'media';
+    subcat = false;
   } else if (containsWholeWord(t, ['necesito', 'falta', 'faltan'])) {
     module = 'compras';
     subcat = 'supermercado';
