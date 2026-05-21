@@ -110,7 +110,7 @@ export function renderTareasSection() {
                     ${formatDate(tarea.fechaLimite)}
                   </span>
                 ` : ''}
-                <span class="badge badge-priority ${tarea.prioridad}">${getPriorityLabel(tarea.prioridad)}</span>
+                <span class="priority-dot ${tarea.prioridad}" title="Prioridad: ${getPriorityLabel(tarea.prioridad)}"></span>
               </div>
               <div class="item-actions-group">
                 <button class="btn-icon delete-btn" data-id="${tarea.id}" title="Eliminar tarea">
