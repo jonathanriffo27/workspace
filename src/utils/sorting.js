@@ -14,6 +14,10 @@ export function sortComprasItems(items) {
     const compA = !!a.completado;
     const compB = !!b.completado;
     if (compA !== compB) return compA ? 1 : -1;
+
+    const prioA = !!a.prioridad;
+    const prioB = !!b.prioridad;
+    if (prioA !== prioB) return prioA ? -1 : 1;
     
     const posA = (a.posicion !== undefined && a.posicion !== null) ? Number(a.posicion) : Number.MAX_SAFE_INTEGER;
     const posB = (b.posicion !== undefined && b.posicion !== null) ? Number(b.posicion) : Number.MAX_SAFE_INTEGER;
@@ -28,6 +32,10 @@ export function sortIdeasItems(items) {
     const archA = !!a.archivada;
     const archB = !!b.archivada;
     if (archA !== archB) return archA ? 1 : -1;
+
+    const prioA = !!a.prioridad;
+    const prioB = !!b.prioridad;
+    if (prioA !== prioB) return prioA ? -1 : 1;
     
     const posA = (a.posicion !== undefined && a.posicion !== null) ? Number(a.posicion) : Number.MAX_SAFE_INTEGER;
     const posB = (b.posicion !== undefined && b.posicion !== null) ? Number(b.posicion) : Number.MAX_SAFE_INTEGER;

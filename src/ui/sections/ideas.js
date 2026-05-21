@@ -4,7 +4,7 @@ import { renderActionInput } from '../components/helpers.js';
 import { showToast } from '../components/toast.js';
 import { showModal } from '../components/modal.js';
 import { handlePressStart, handlePressEnd, handlePressMove } from '../components/titleEditor.js';
-import { addItem, deleteItem, toggleCompleted, updateNotes, reorderItem } from '../../services/dataService.js';
+import { addItem, deleteItem, toggleCompleted, updateNotes, updateItemField, reorderItem } from '../../services/dataService.js';
 import { handleSelectionStart, handleSelectionEnd, renderSelectionBar, clearSelection, isSelectionActive, removeFromSelection, toggleSelection, handleClickOutside, handleSelectionMove } from '../components/multiSelect.js';
 import { initSortable } from '../components/sortable.js';
 
@@ -104,6 +104,9 @@ export function renderIdeasSection() {
           <div class="item-row">
             <span class="item-text"></span>
             <div class="item-actions-group">
+              <button class="btn-icon priority-toggle-btn ${idea.prioridad ? 'active' : ''}" data-id="${idea.id}" title="${idea.prioridad ? 'Quitar prioridad' : 'Destacar'}">
+                <svg viewBox="0 0 24 24" fill="${idea.prioridad ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </button>
               <button class="btn-icon delete-btn" data-id="${idea.id}" title="Eliminar idea">
                 <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
@@ -167,7 +170,7 @@ function attachIdeasEvents() {
   const handleAdd = async () => {
     const titulo = titleInput.value.trim();
     if (!titulo) return;
-    if (await addItem('ideas', { titulo, notas: '', archivada: false })) {
+    if (await addItem('ideas', { titulo, notas: '', prioridad: false, archivada: false })) {
         titleInput.value = '';
         showToast('Idea capturada', 'success');
     }
@@ -187,6 +190,7 @@ function attachIdeasEvents() {
   list.addEventListener('click', async (e) => {
     const checkbox = e.target.closest('.checkbox');
     const deleteBtn = e.target.closest('.delete-btn');
+    const priorityToggleBtn = e.target.closest('.priority-toggle-btn');
     const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row') || e.target.closest('.item-text');
     const saveBtn = e.target.closest('.save-idea-btn');
     const card = e.target.closest('.item-card');
@@ -196,6 +200,16 @@ function attachIdeasEvents() {
       const id = card.dataset.id;
       toggleSelection('ideas', id);
       return;
+    }
+
+    if (priorityToggleBtn) {
+      const id = priorityToggleBtn.dataset.id;
+      const item = appState.ideas.items.find(i => i.id === id);
+      if (item) {
+        if (await updateItemField(id, 'ideas', 'prioridad', !item.prioridad)) {
+          showToast('Prioridad actualizada', 'success');
+        }
+      }
     }
     
     if (checkbox) {
@@ -231,7 +245,7 @@ function attachIdeasEvents() {
       }
     }
 
-    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea') && !e.target.closest('.is-editing')) {
+    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('.priority-toggle-btn') && !e.target.closest('textarea') && !e.target.closest('.is-editing')) {
       const cardEl = expandBtn.closest('.item-card');
       list.querySelectorAll('.item-card.expanded').forEach(c => {
         if (c !== cardEl) c.classList.remove('expanded');

@@ -107,12 +107,15 @@ export function renderComprasSection() {
             <span class="item-text"></span>
             <div class="item-actions-group">
               <span class="badge badge-categoria" data-id="${item.id}" data-category="${item.categoria}" title="Mantén presionado para cambiar">${getCategoryLabel(item.categoria)}</span>
+              <button class="btn-icon priority-toggle-btn ${item.prioridad ? 'active' : ''}" data-id="${item.id}" title="${item.prioridad ? 'Quitar prioridad' : 'Destacar'}">
+                <svg viewBox="0 0 24 24" fill="${item.prioridad ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </button>
+              <button class="btn-icon delete-btn" data-id="${item.id}" title="Eliminar producto">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
             </div>
           </div>
         </div>
-        <button class="btn-icon delete-btn" data-id="${item.id}" title="Eliminar producto">
-          <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
       `;
 
       // Safely set user-provided content
@@ -157,7 +160,7 @@ function attachComprasEvents() {
     const nombre = input.value.trim();
     if (!nombre) return;
     const categoria = appState.compras.filters.length > 0 ? appState.compras.filters[0] : 'supermercado';
-    if (await addItem('compras', { nombre, categoria, completado: false })) {
+    if (await addItem('compras', { nombre, categoria, prioridad: false, completado: false })) {
         input.value = '';
         showToast('Producto añadido', 'success');
     }
@@ -177,6 +180,7 @@ function attachComprasEvents() {
   list.addEventListener('click', async (e) => {
     const checkbox = e.target.closest('.checkbox');
     const deleteBtn = e.target.closest('.delete-btn');
+    const priorityToggleBtn = e.target.closest('.priority-toggle-btn');
     const card = e.target.closest('.item-card');
 
     // Handle click selection when in selection mode
@@ -184,6 +188,16 @@ function attachComprasEvents() {
       const id = card.dataset.id;
       toggleSelection('compras', id);
       return;
+    }
+
+    if (priorityToggleBtn) {
+      const id = priorityToggleBtn.dataset.id;
+      const item = appState.compras.items.find(i => i.id === id);
+      if (item) {
+        if (await updateItemField(id, 'compras', 'prioridad', !item.prioridad)) {
+          showToast('Prioridad actualizada', 'success');
+        }
+      }
     }
 
     if (checkbox) {

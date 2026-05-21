@@ -183,13 +183,13 @@ async function processVoiceCapture(text) {
     const writePromises = items.filter(i => i.title).map(({ module, subcat, title, notes }) => {
       if (module === 'compras') {
         currentMinPos.compras -= 1;
-        return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', posicion: currentMinPos.compras, completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', prioridad: false, posicion: currentMinPos.compras, completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else if (module === 'tareas') {
         currentMinPos.tareas -= 1;
         return addDoc(collections.tareas, { titulo: title, prioridad: subcat || false, posicion: currentMinPos.tareas, fechaLimite: null, notas: notes || '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else {
         currentMinPos.ideas -= 1;
-        return addDoc(collections.ideas, { titulo: title, notas: notes || '', posicion: currentMinPos.ideas, archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        return addDoc(collections.ideas, { titulo: title, notas: notes || '', prioridad: false, posicion: currentMinPos.ideas, archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });
       }
     });
 
