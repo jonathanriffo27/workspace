@@ -43,6 +43,20 @@
   gap: 8px; 
 }
 
+.item-card.idea.expanded .item-row {
+  height: auto;
+  min-height: 32px;
+  align-items: flex-start;
+  padding-top: 4px;
+}
+
+.item-card.idea.expanded .item-text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
+}
+
 .item-text.is-editing {
   background: var(--bg-tertiary);
   padding: 4px 8px;

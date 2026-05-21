@@ -58,6 +58,14 @@
   flex-shrink: 0;
 }
 
+.expand-indicator-btn svg {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.item-card.expanded .expand-indicator-btn svg {
+  transform: rotate(180deg);
+}
+
 .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-full); font-size: 9px; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; flex-shrink: 0; }
 .badge-categoria { background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border-color: var(--border-subtle); }
 .badge-priority { color: #FFFFFF; }

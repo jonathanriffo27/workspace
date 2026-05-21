@@ -1,44 +1,65 @@
+function getTimestamp(val) {
+  if (val instanceof Date) return val.getTime();
+  if (typeof val === 'number') return val;
+  if (typeof val === 'string') {
+    const parsed = Date.parse(val);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  if (val && typeof val.toMillis === 'function') return val.toMillis();
+  return 0;
+}
+
 export function sortComprasItems(items) {
   return [...items].sort((a, b) => {
-    if (a.completado !== b.completado) return a.completado ? 1 : -1;
+    const compA = !!a.completado;
+    const compB = !!b.completado;
+    if (compA !== compB) return compA ? 1 : -1;
     
-    const posA = a.posicion !== undefined ? a.posicion : Number.MAX_SAFE_INTEGER;
-    const posB = b.posicion !== undefined ? b.posicion : Number.MAX_SAFE_INTEGER;
+    const posA = (a.posicion !== undefined && a.posicion !== null) ? Number(a.posicion) : Number.MAX_SAFE_INTEGER;
+    const posB = (b.posicion !== undefined && b.posicion !== null) ? Number(b.posicion) : Number.MAX_SAFE_INTEGER;
     
     if (posA !== posB) return posA - posB;
-    return b.creadoEn - a.creadoEn;
+    return getTimestamp(b.creadoEn) - getTimestamp(a.creadoEn);
   });
 }
 
 export function sortIdeasItems(items) {
   return [...items].sort((a, b) => {
-    if (a.archivada !== b.archivada) return a.archivada ? 1 : -1;
+    const archA = !!a.archivada;
+    const archB = !!b.archivada;
+    if (archA !== archB) return archA ? 1 : -1;
     
-    const posA = a.posicion !== undefined ? a.posicion : Number.MAX_SAFE_INTEGER;
-    const posB = b.posicion !== undefined ? b.posicion : Number.MAX_SAFE_INTEGER;
+    const posA = (a.posicion !== undefined && a.posicion !== null) ? Number(a.posicion) : Number.MAX_SAFE_INTEGER;
+    const posB = (b.posicion !== undefined && b.posicion !== null) ? Number(b.posicion) : Number.MAX_SAFE_INTEGER;
     
     if (posA !== posB) return posA - posB;
-    return b.creadoEn - a.creadoEn;
+    return getTimestamp(b.creadoEn) - getTimestamp(a.creadoEn);
   });
 }
 
 export function sortTareasItems(items) {
   const priorityOrder = { alta: 0, media: 1, baja: 2 };
   return [...items].sort((a, b) => {
-    if (a.archivada !== b.archivada) return a.archivada ? 1 : -1;
-    if (a.completado !== b.completado) return a.completado ? 1 : -1;
+    const archA = !!a.archivada;
+    const archB = !!b.archivada;
+    if (archA !== archB) return archA ? 1 : -1;
+
+    const compA = !!a.completado;
+    const compB = !!b.completado;
+    if (compA !== compB) return compA ? 1 : -1;
     
-    const posA = a.posicion !== undefined ? a.posicion : Number.MAX_SAFE_INTEGER;
-    const posB = b.posicion !== undefined ? b.posicion : Number.MAX_SAFE_INTEGER;
+    const posA = (a.posicion !== undefined && a.posicion !== null) ? Number(a.posicion) : Number.MAX_SAFE_INTEGER;
+    const posB = (b.posicion !== undefined && b.posicion !== null) ? Number(b.posicion) : Number.MAX_SAFE_INTEGER;
     
     if (posA !== posB) return posA - posB;
 
-    if (priorityOrder[a.prioridad] !== priorityOrder[b.prioridad]) {
-      return priorityOrder[a.prioridad] - priorityOrder[b.prioridad];
-    }
+    const prioA = priorityOrder[a.prioridad] ?? 1;
+    const prioB = priorityOrder[b.prioridad] ?? 1;
+    if (prioA !== prioB) return prioA - prioB;
+
     if (a.fechaLimite && b.fechaLimite) return a.fechaLimite - b.fechaLimite;
     if (a.fechaLimite) return -1;
     if (b.fechaLimite) return 1;
-    return b.creadoEn - a.creadoEn;
+    return getTimestamp(b.creadoEn) - getTimestamp(a.creadoEn);
   });
 }

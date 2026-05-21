@@ -78,12 +78,34 @@ export async function updateTaskMeta(id, data) {
 export async function toggleCompleted(id, type, currentStatus) {
   try {
     const docRef = doc(db, type, id);
+    const isCompleted = currentStatus === true || currentStatus === 'true';
     
-    if (type === 'tareas' && currentStatus === true) {
-      await updateDoc(docRef, { completado: false, archivada: false });
+    if (type === 'tareas' && isCompleted) {
+      const pendingItems = appState.tareas.items.filter(i => !i.completado && !i.archivada);
+      const minPos = pendingItems.reduce((min, i) => {
+        const pos = Number(i.posicion);
+        return (!isNaN(pos)) ? Math.min(min, pos) : min;
+      }, 0);
+      await updateDoc(docRef, { 
+        completado: false, 
+        archivada: false,
+        posicion: minPos - 1
+      });
     } else {
       const field = type === 'ideas' ? 'archivada' : 'completado';
-      await updateDoc(docRef, { [field]: !currentStatus });
+      const nextVal = !isCompleted;
+      const updateData = { [field]: nextVal };
+      
+      if (type === 'compras' && nextVal === false) {
+        const pendingItems = appState.compras.items.filter(i => !i.completado);
+        const minPos = pendingItems.reduce((min, i) => {
+          const pos = Number(i.posicion);
+          return (!isNaN(pos)) ? Math.min(min, pos) : min;
+        }, 0);
+        updateData.posicion = minPos - 1;
+      }
+      
+      await updateDoc(docRef, updateData);
     }
     
     let message = '';
@@ -126,7 +148,8 @@ export async function addItem(type, data) {
     // Initialize position to be at the top
     const currentItems = appState[type].items;
     const minPos = currentItems.reduce((min, i) => {
-      return i.posicion !== undefined ? Math.min(min, i.posicion) : min;
+      const pos = Number(i.posicion);
+      return (!isNaN(pos)) ? Math.min(min, pos) : min;
     }, 0);
     processedData.posicion = minPos - 1;
 
@@ -200,8 +223,8 @@ export async function reorderItem(id, type, direction, sortedItems) {
     const neighborDone = neighborItem.completado !== undefined ? neighborItem.completado : !!neighborItem.archivada;
     if (currentDone !== neighborDone) return false;
 
-    const currentPos = currentItem.posicion !== undefined ? currentItem.posicion : currentIndex;
-    const neighborPos = neighborItem.posicion !== undefined ? neighborItem.posicion : neighborIndex;
+    const currentPos = (typeof currentItem.posicion === 'number' && !isNaN(currentItem.posicion)) ? currentItem.posicion : currentIndex;
+    const neighborPos = (typeof neighborItem.posicion === 'number' && !isNaN(neighborItem.posicion)) ? neighborItem.posicion : neighborIndex;
 
     const docRef = doc(db, type, currentItem.id);
     const neighborRef = doc(db, type, neighborItem.id);

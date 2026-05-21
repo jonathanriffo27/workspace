@@ -49,6 +49,20 @@
   gap: 8px; 
 }
 
+.item-card.task.expanded .item-row {
+  height: auto;
+  min-height: 32px;
+  align-items: flex-start;
+  padding-top: 4px;
+}
+
+.item-card.task.expanded .item-text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
+}
+
 .item-card.task .task-meta-expand-wrapper {
   display: flex;
   align-items: center;

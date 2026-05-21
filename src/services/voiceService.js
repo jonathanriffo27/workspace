@@ -165,13 +165,31 @@ async function processVoiceCapture(text) {
 
     let mainModule = items[0]?.module || 'ideas';
 
+    let currentMinPos = {
+      compras: appState.compras?.items?.reduce((min, i) => {
+        const pos = Number(i.posicion);
+        return (!isNaN(pos)) ? Math.min(min, pos) : min;
+      }, 0) || 0,
+      tareas: appState.tareas?.items?.reduce((min, i) => {
+        const pos = Number(i.posicion);
+        return (!isNaN(pos)) ? Math.min(min, pos) : min;
+      }, 0) || 0,
+      ideas: appState.ideas?.items?.reduce((min, i) => {
+        const pos = Number(i.posicion);
+        return (!isNaN(pos)) ? Math.min(min, pos) : min;
+      }, 0) || 0,
+    };
+
     const writePromises = items.filter(i => i.title).map(({ module, subcat, title, notes }) => {
       if (module === 'compras') {
-        return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        currentMinPos.compras -= 1;
+        return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', posicion: currentMinPos.compras, completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else if (module === 'tareas') {
-        return addDoc(collections.tareas, { titulo: title, prioridad: subcat || 'media', fechaLimite: null, notas: notes || '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        currentMinPos.tareas -= 1;
+        return addDoc(collections.tareas, { titulo: title, prioridad: subcat || 'media', posicion: currentMinPos.tareas, fechaLimite: null, notas: notes || '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else {
-        return addDoc(collections.ideas, { titulo: title, notas: notes || '', archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        currentMinPos.ideas -= 1;
+        return addDoc(collections.ideas, { titulo: title, notas: notes || '', posicion: currentMinPos.ideas, archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });
       }
     });
 
@@ -219,7 +237,7 @@ async function categorizeWithLLM(text) {
         model: "openrouter/free",
         messages: [{ 
           role: "system", 
-          content: "You are a smart task organizer. For compras (shopping lists, items): return category: 'compras' and items: array of strings. For tareas (actions, tasks, to-dos, things starting with action verbs like 'mejorar', 'crear', 'diseñar', 'hacer'): return category: 'tareas' and items: split into title (action) and notes (detail). For ideas (thoughts, notes, creative concepts): return category: 'ideas' and items: ALWAYS put the FULL original text in notes, and create a short 3-5 word title as summary. Examples: 'comprar leche pan queso' -> {category: 'compras', items: ['Leche', 'Pan', 'Queso']}. 'crear un agente de marketing' -> {category: 'tareas', items: [{title: 'Crear un agente de marketing', notes: ''}]}. 'mejorar interfaz de items' -> {category: 'tareas', items: [{title: 'Mejorar interfaz de items', notes: ''}]}. 'tengo que llamar a juan para confirmar la reunion' -> {category: 'tareas', items: [{title: 'Llamar a Juan', notes: 'Confirmar la reunión'}]}. 'idea sobre usar formato HTML para que sea mas visual' -> {category: 'ideas', items: [{title: 'Formato HTML', notes: 'idea sobre usar formato HTML para que sea mas visual'}]}." 
+          content: "You are a smart task organizer. For compras (shopping lists, items): return category: 'compras' and items: array of strings. For tareas (actions, tasks, to-dos, things starting with action verbs like 'mejorar', 'crear', 'diseñar', 'hacer'): return category: 'tareas' and items: split into title (action) and notes (detail). For ideas (thoughts, notes, creative concepts, or generic/ambiguous test statements like 'prueba 1', 'test', 'hola'): return category: 'ideas' and items: ALWAYS put the FULL original text in notes, and create a short 3-5 word title as summary. Examples: 'comprar leche pan queso' -> {category: 'compras', items: ['Leche', 'Pan', 'Queso']}. 'crear un agente de marketing' -> {category: 'tareas', items: [{title: 'Crear un agente de marketing', notes: ''}]}. 'mejorar interfaz de items' -> {category: 'tareas', items: [{title: 'Mejorar interfaz de items', notes: ''}]}. 'tengo que llamar a juan para confirmar la reunion' -> {category: 'tareas', items: [{title: 'Llamar a Juan', notes: 'Confirmar la reunión'}]}. 'prueba 1' -> {category: 'ideas', items: [{title: 'Prueba 1', notes: 'prueba 1'}]}. 'idea sobre usar formato HTML para que sea mas visual' -> {category: 'ideas', items: [{title: 'Formato HTML', notes: 'idea sobre usar formato HTML para que sea mas visual'}]}." 
         }, { role: "user", content: text }]
       })
     });
@@ -267,7 +285,7 @@ function categorizeInputHeuristic(text) {
     'mejora', 'crea', 'diseña', 'desarrolla', 'haz', 'llama', 'revisa', 'envía', 'envia',
     'programa', 'prepara', 'escribe', 'termina', 'actualiza', 'arregla', 'corrige', 
     'agrega', 'añade', 'configura', 'implementa', 'maqueta', 'busca', 'estudia', 
-    'aprende', 'investiga', 'limpia', 'ordena', 'organiza', 'prueba', 'verifica', 
+    'aprende', 'investiga', 'limpia', 'ordena', 'organiza', 'verifica', 
     'valida', 'analiza', 'completa', 'instala', 'sube', 'publica', 'cambia', 
     'elimina', 'borra', 'resuelve', 'repara', 'optimiza', 'integra', 'despliega',
     'tengo que', 'debo', 'hay que', 'toca', 'pendiente'
