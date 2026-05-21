@@ -150,7 +150,7 @@ function attachIdeasEvents() {
   list.addEventListener('click', async (e) => {
     const checkbox = e.target.closest('.checkbox');
     const deleteBtn = e.target.closest('.delete-btn');
-    const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
+    const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row') || e.target.closest('.item-text');
     const saveBtn = e.target.closest('.save-idea-btn');
     const card = e.target.closest('.item-card');
 
@@ -194,8 +194,11 @@ function attachIdeasEvents() {
       }
     }
 
-    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea') && !e.target.closest('.item-text')) {
+    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea')) {
       const cardEl = expandBtn.closest('.item-card');
+      list.querySelectorAll('.item-card.expanded').forEach(c => {
+        if (c !== cardEl) c.classList.remove('expanded');
+      });
       cardEl.classList.toggle('expanded');
     }
   });

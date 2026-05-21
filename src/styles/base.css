@@ -40,7 +40,12 @@ body::after {
 }
 
 .section { display: none; animation: fadeIn 0.3s ease-out; }
-.section.active { display: block; }
+.section.active {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 @keyframes slideIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }

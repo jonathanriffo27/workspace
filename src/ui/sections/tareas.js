@@ -178,7 +178,7 @@ function attachTareasEvents() {
   list.addEventListener('click', async (e) => {
     const checkbox = e.target.closest('.checkbox');
     const deleteBtn = e.target.closest('.delete-btn');
-    const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row');
+    const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row') || e.target.closest('.item-text');
     const saveBtn = e.target.closest('.save-task-btn');
     const card = e.target.closest('.item-card');
 
@@ -208,8 +208,11 @@ function attachTareasEvents() {
       });
     }
 
-    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.item-text') && !e.target.closest('.priority-select') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea')) {
+    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.priority-select') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea')) {
       const cardEl = expandBtn.closest('.item-card');
+      list.querySelectorAll('.item-card.expanded').forEach(c => {
+        if (c !== cardEl) c.classList.remove('expanded');
+      });
       cardEl.classList.toggle('expanded');
     }
 

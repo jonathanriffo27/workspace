@@ -25,6 +25,10 @@
   margin-top: 6px;
 }
 
+.item-card.task .drag-handle {
+  align-self: center;
+}
+
 .item-card.task .task-meta-inline { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .item-card.task.expanded .task-meta-inline { display: none; }
 

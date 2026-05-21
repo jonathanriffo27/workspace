@@ -1,4 +1,27 @@
-.items-list { display: flex; flex-direction: column; gap: 4px; }
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 24px;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+.items-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.items-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.items-list::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: var(--radius-full);
+}
 
 .item-card {
   display: flex;
@@ -70,9 +93,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   margin-left: -8px;
+  margin-right: -9px;
   color: var(--text-tertiary);
   cursor: grab;
   user-select: none;
@@ -80,6 +104,11 @@
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.drag-handle svg {
+  width: 14px;
+  height: 14px;
 }
 
 .drag-handle:hover,

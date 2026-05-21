@@ -15,6 +15,10 @@
   margin-top: 6px; /* Align with first line of text */
 }
 
+.item-card.idea .drag-handle {
+  align-self: center;
+}
+
 .item-card.idea .item-actions-group {
   gap: 0;
 }
