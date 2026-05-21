@@ -198,6 +198,15 @@ export async function moveItem(id, fromType, toType) {
       newItem.fechaLimite = null;
     }
 
+    // Set position to the top of the new list
+    const currentItems = appState[toType].items;
+    const minPos = currentItems.reduce((min, i) => {
+      const pos = Number(i.posicion);
+      return (!isNaN(pos)) ? Math.min(min, pos) : min;
+    }, 0);
+    newItem.posicion = minPos - 1;
+    newItem.creadoEn = new Date();
+
     await addDoc(collections[toType], newItem);
     await deleteDoc(doc(db, fromType, id));
     return true;
