@@ -60,5 +60,5 @@ export function initStore() {
 
 export const CATEGORIAS = ['supermercado', 'internet', 'farmacia', 'otros'];
 export const PRIORIDADES = ['alta', 'media', 'baja'];
-export const TAREA_FILTERS = ['todas', 'pendientes', 'completadas'];
+export const TAREA_FILTERS = ['todas', 'pendientes', 'archivadas'];
 export { STORAGE_KEYS };

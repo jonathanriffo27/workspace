@@ -194,7 +194,7 @@ function attachIdeasEvents() {
       }
     }
 
-    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea')) {
+    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-idea-btn') && !e.target.closest('textarea') && !e.target.closest('.is-editing')) {
       const cardEl = expandBtn.closest('.item-card');
       list.querySelectorAll('.item-card.expanded').forEach(c => {
         if (c !== cardEl) c.classList.remove('expanded');

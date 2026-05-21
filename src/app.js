@@ -3,6 +3,7 @@ import { auth } from "./firebase.js";
 import { appState, initStore, subscribe } from "./store.js";
 import { initFirestoreSync } from "./services/firebaseSync.js";
 import { initVoiceCapture } from "./services/voiceService.js";
+import { initTaskArchiver } from "./services/taskArchiver.js";
 import { 
   showLoginScreen, 
   hideLoginScreen, 
@@ -53,6 +54,7 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
         
         initFirestoreSync();
         initVoiceCapture();
+        initTaskArchiver();
       } else {
         showLoginScreen();
         updateHeaderForUser(null);

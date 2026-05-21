@@ -55,6 +55,7 @@ export function handlePressStart(e, type, timerRef) {
       if (!titleSpan.contains(e.target)) {
         document.removeEventListener('click', handleOutsideClick);
         document.removeEventListener('pointerdown', handleOutsideClick);
+        e.stopPropagation();
         titleSpan.blur();
       }
     };

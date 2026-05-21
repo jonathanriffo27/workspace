@@ -2,7 +2,8 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
-  doc 
+  doc,
+  writeBatch
 } from "firebase/firestore";
 import { db, collections } from "../firebase.js";
 import { appState } from "../store.js";
@@ -190,20 +191,16 @@ export async function reorderItem(id, type, direction, sortedItems) {
     const currentItem = sortedItems[currentIndex];
     const neighborItem = sortedItems[neighborIndex];
 
-    // Ensure they are in the same completion group (usually reorder only within the same group)
     const currentDone = currentItem.completado !== undefined ? currentItem.completado : !!currentItem.archivada;
     const neighborDone = neighborItem.completado !== undefined ? neighborItem.completado : !!neighborItem.archivada;
     if (currentDone !== neighborDone) return false;
 
-    // Use current index as fallback if posicion is missing
     const currentPos = currentItem.posicion !== undefined ? currentItem.posicion : currentIndex;
     const neighborPos = neighborItem.posicion !== undefined ? neighborItem.posicion : neighborIndex;
 
     const docRef = doc(db, type, currentItem.id);
     const neighborRef = doc(db, type, neighborItem.id);
 
-    // Swap positions
-    // If they have the same position (or both missing), we need to make them different
     let newCurrentPos = neighborPos;
     let newNeighborPos = currentPos;
     
@@ -219,5 +216,29 @@ export async function reorderItem(id, type, direction, sortedItems) {
     console.error('Error reordering item:', err);
     showToast('Error al reordenar', 'error');
     return false;
+  }
+}
+
+export async function archiveCompletedTasks() {
+  try {
+    const completedTasks = appState.tareas.items.filter(
+      t => t.completado === true && t.archivada !== true
+    );
+
+    if (completedTasks.length === 0) return 0;
+
+    const batch = writeBatch(db);
+    completedTasks.forEach(task => {
+      const docRef = doc(db, 'tareas', task.id);
+      batch.update(docRef, { archivada: true });
+    });
+
+    await batch.commit();
+    console.log(`[TaskArchiver] ${completedTasks.length} tareas archivadas`);
+    return completedTasks.length;
+  } catch (err) {
+    console.error('[TaskArchiver] Error archiving tasks:', err);
+    showToast('Error al archivar tareas', 'error');
+    return 0;
   }
 }

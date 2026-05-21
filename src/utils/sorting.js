@@ -25,6 +25,7 @@ export function sortIdeasItems(items) {
 export function sortTareasItems(items) {
   const priorityOrder = { alta: 0, media: 1, baja: 2 };
   return [...items].sort((a, b) => {
+    if (a.archivada !== b.archivada) return a.archivada ? 1 : -1;
     if (a.completado !== b.completado) return a.completado ? 1 : -1;
     
     const posA = a.posicion !== undefined ? a.posicion : Number.MAX_SAFE_INTEGER;

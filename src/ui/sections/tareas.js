@@ -17,13 +17,13 @@ export function renderTareasSection() {
 
   const { items, filter } = appState.tareas;
   
-  const filtered = filter === 'todas' ? items : 
-                   filter === 'pendientes' ? items.filter(i => !i.completado) : 
-                   items.filter(i => i.completado);
+  const filtered = filter === 'todas' ? items.filter(i => !i.archivada) : 
+                   filter === 'pendientes' ? items.filter(i => !i.completado && !i.archivada) : 
+                   items.filter(i => i.archivada);
   const sorted = sortTareasItems(filtered);
 
-  const totalTareas = items.length;
-  const completedTareas = items.filter(i => i.completado).length;
+  const totalTareas = items.filter(i => !i.archivada).length;
+  const archivedTareas = items.filter(i => i.archivada).length;
 
   section.innerHTML = `
     <div class="stats-bar">
@@ -31,12 +31,12 @@ export function renderTareasSection() {
         <span class="stat-value">${totalTareas}</span>
         <span class="stat-label">Total</span>
       </div>
-      <div class="stat-item completed ${filter === 'completadas' ? 'active' : ''}" data-filter="completadas">
-        <span class="stat-value">${completedTareas}</span>
+      <div class="stat-item completed ${filter === 'archivadas' ? 'active' : ''}" data-filter="archivadas">
+        <span class="stat-value">${archivedTareas}</span>
         <span class="stat-label">Hecho</span>
       </div>
       <div class="stat-item pending ${filter === 'pendientes' ? 'active' : ''}" data-filter="pendientes">
-        <span class="stat-value">${totalTareas - completedTareas}</span>
+        <span class="stat-value">${totalTareas - archivedTareas}</span>
         <span class="stat-label">Pendiente</span>
       </div>
     </div>
@@ -51,8 +51,8 @@ export function renderTareasSection() {
           <div class="empty-icon">
             <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
-          <h3 class="empty-title">Sin tareas</h3>
-          <p class="empty-text">Añade tus tareas pendientes para empezar</p>
+          <h3 class="empty-title">${filter === 'archivadas' ? 'Sin tareas archivadas' : 'Sin tareas'}</h3>
+          <p class="empty-text">${filter === 'archivadas' ? 'Las tareas completadas se archivarán automáticamente' : 'Añade tus tareas pendientes para empezar'}</p>
         </div>
       ` : ''}
     </div>
@@ -208,7 +208,7 @@ function attachTareasEvents() {
       });
     }
 
-    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.priority-select') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea')) {
+    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.priority-select') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea') && !e.target.closest('.is-editing')) {
       const cardEl = expandBtn.closest('.item-card');
       list.querySelectorAll('.item-card.expanded').forEach(c => {
         if (c !== cardEl) c.classList.remove('expanded');
