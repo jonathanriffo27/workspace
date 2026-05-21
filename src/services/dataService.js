@@ -78,8 +78,13 @@ export async function updateTaskMeta(id, data) {
 export async function toggleCompleted(id, type, currentStatus) {
   try {
     const docRef = doc(db, type, id);
-    const field = type === 'ideas' ? 'archivada' : 'completado';
-    await updateDoc(docRef, { [field]: !currentStatus });
+    
+    if (type === 'tareas' && currentStatus === true) {
+      await updateDoc(docRef, { completado: false, archivada: false });
+    } else {
+      const field = type === 'ideas' ? 'archivada' : 'completado';
+      await updateDoc(docRef, { [field]: !currentStatus });
+    }
     
     let message = '';
     if (type === 'ideas') message = !currentStatus ? 'Idea archivada' : 'Idea restaurada';

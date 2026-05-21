@@ -16,7 +16,8 @@
 }
 
 .item-card.idea .drag-handle {
-  align-self: center;
+  align-self: flex-start;
+  margin-top: 1px;
 }
 
 .item-card.idea .item-actions-group {
@@ -74,6 +75,8 @@
   overflow: hidden; 
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
   opacity: 0;
+  margin-left: -32px;
+  width: calc(100% + 32px);
 }
 
 .item-card.idea.expanded .idea-notes-row { 

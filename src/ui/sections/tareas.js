@@ -279,6 +279,13 @@ function attachTareasEvents() {
     }
   });
 
+  // Toggle selection mode class on list
+  if (appState.tareas.selectionMode || appState.tareas.selectedItems.size > 0) {
+    list.classList.add('selection-mode-active');
+  } else {
+    list.classList.remove('selection-mode-active');
+  }
+
   // Render selection bar if active
   if (isSelectionActive('tareas')) {
     renderSelectionBar('tareas');

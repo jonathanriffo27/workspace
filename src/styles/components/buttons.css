@@ -106,14 +106,20 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: var(--danger);
-  border: none;
-  border-radius: var(--radius-md);
-  color: white;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  color: #FF5A5A;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.selection-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #FFFFFF;
 }
 
 .selection-delete-btn:active {
@@ -125,9 +131,9 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-size: 12px;
   font-weight: 600;
@@ -135,24 +141,14 @@
   transition: all 0.2s ease;
 }
 
+.selection-move-btn:hover {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 .selection-move-btn:active {
   transform: scale(0.95);
-}
-
-.selection-move-btn svg {
-  width: 14px;
-  height: 14px;
-  stroke: currentColor;
-  stroke-width: 2.5;
-  fill: none;
-}
-
-.selection-delete-btn svg {
-  width: 14px;
-  height: 14px;
-  stroke: currentColor;
-  stroke-width: 2.5;
-  fill: none;
 }
 
 .selection-cancel-btn {
@@ -161,18 +157,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.selection-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
 }
 
 .selection-cancel-btn:active {
   transform: scale(0.95);
 }
 
+.selection-move-btn svg,
+.selection-delete-btn svg,
 .selection-cancel-btn svg {
   width: 14px;
   height: 14px;
@@ -180,3 +184,4 @@
   stroke-width: 2.5;
   fill: none;
 }
+

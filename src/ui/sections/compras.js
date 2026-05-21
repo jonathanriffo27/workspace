@@ -216,6 +216,13 @@ function attachComprasEvents() {
     }
   });
 
+  // Toggle selection mode class on list
+  if (appState.compras.selectionMode || appState.compras.selectedItems.size > 0) {
+    list.classList.add('selection-mode-active');
+  } else {
+    list.classList.remove('selection-mode-active');
+  }
+
   // Render selection bar if active
   if (isSelectionActive('compras')) {
     renderSelectionBar('compras');

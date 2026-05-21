@@ -217,7 +217,10 @@ async function categorizeWithLLM(text) {
       headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "openrouter/free",
-        messages: [{ role: "system", content: "You are a smart task organizer. For compras: return array of strings. For tareas: split into title (action) and notes (detail). For ideas: ALWAYS put the FULL original text in notes, and create a short 3-5 word title as summary. Examples: 'comprar leche pan queso' -> {category: 'compras', items: ['Leche', 'Pan', 'Queso']}. 'tengo que llamar a juan para confirmar la reunion' -> {category: 'tareas', items: [{title: 'Llamar a Juan', notes: 'Confirmar la reunión'}]}. 'idea sobre usar formato HTML para que sea mas visual' -> {category: 'ideas', items: [{title: 'Formato HTML', notes: 'idea sobre usar formato HTML para que sea mas visual'}]}. 'hay una idea para el nuevo proyecto que quiero desarrollar' -> {category: 'ideas', items: [{title: 'Nuevo proyecto', notes: 'hay una idea para el nuevo proyecto que quiero desarrollar'}]}." }, { role: "user", content: text }]
+        messages: [{ 
+          role: "system", 
+          content: "You are a smart task organizer. For compras (shopping lists, items): return category: 'compras' and items: array of strings. For tareas (actions, tasks, to-dos, things starting with action verbs like 'mejorar', 'crear', 'diseñar', 'hacer'): return category: 'tareas' and items: split into title (action) and notes (detail). For ideas (thoughts, notes, creative concepts): return category: 'ideas' and items: ALWAYS put the FULL original text in notes, and create a short 3-5 word title as summary. Examples: 'comprar leche pan queso' -> {category: 'compras', items: ['Leche', 'Pan', 'Queso']}. 'crear un agente de marketing' -> {category: 'tareas', items: [{title: 'Crear un agente de marketing', notes: ''}]}. 'mejorar interfaz de items' -> {category: 'tareas', items: [{title: 'Mejorar interfaz de items', notes: ''}]}. 'tengo que llamar a juan para confirmar la reunion' -> {category: 'tareas', items: [{title: 'Llamar a Juan', notes: 'Confirmar la reunión'}]}. 'idea sobre usar formato HTML para que sea mas visual' -> {category: 'ideas', items: [{title: 'Formato HTML', notes: 'idea sobre usar formato HTML para que sea mas visual'}]}." 
+        }, { role: "user", content: text }]
       })
     });
     const data = await response.json();
@@ -228,18 +231,65 @@ async function categorizeWithLLM(text) {
   }
 }
 
+function containsWholeWord(text, wordsList) {
+  return wordsList.some(word => {
+    const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(`(?:^|[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ])${escapedWord}(?:$|[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ])`, 'i');
+    return regex.test(text);
+  });
+}
+
 function categorizeInputHeuristic(text) {
-  const t = text.toLowerCase();
+  const t = text.toLowerCase().trim();
+
+  const ideaIndicators = [
+    'idea de', 'idea para', 'idea sobre', 'mi idea', 
+    'ocurrio', 'ocurrió', 'pensamiento', 'reflexion', 'reflexión', 
+    'notas de', 'nota de', 'anotación', 'anotacion', 
+    'recordar que', 'pensar en'
+  ];
+
+  const shoppingKeywords = [
+    'comprar', 'compra', 'compras', 'traer', 'supermercado', 'despensa', 
+    'tienda', 'almacen', 'almacén', 'fruteria', 'frutería', 'verduleria', 
+    'verdulería', 'carniceria', 'carnicería', 'panaderia', 'panadería', 
+    'botica', 'farmacia'
+  ];
+
+  const taskKeywords = [
+    'mejorar', 'crear', 'diseñar', 'desarrollar', 'hacer', 'llamar', 'revisar', 'enviar', 
+    'programar', 'preparar', 'escribir', 'terminar', 'actualizar', 'arreglar', 'corregir', 
+    'agregar', 'añadir', 'configurar', 'implementar', 'maquetar', 'buscar', 'estudiar', 
+    'aprender', 'investigar', 'limpiar', 'ordenar', 'organizar', 'probar', 'verificar', 
+    'validar', 'analizar', 'completar', 'instalar', 'subir', 'publicar', 'cambiar', 
+    'eliminar', 'borrar', 'resolver', 'reparar', 'optimizar', 'integrar', 'desplegar', 
+    'testear',
+    'mejora', 'crea', 'diseña', 'desarrolla', 'haz', 'llama', 'revisa', 'envía', 'envia',
+    'programa', 'prepara', 'escribe', 'termina', 'actualiza', 'arregla', 'corrige', 
+    'agrega', 'añade', 'configura', 'implementa', 'maqueta', 'busca', 'estudia', 
+    'aprende', 'investiga', 'limpia', 'ordena', 'organiza', 'prueba', 'verifica', 
+    'valida', 'analiza', 'completa', 'instala', 'sube', 'publica', 'cambia', 
+    'elimina', 'borra', 'resuelve', 'repara', 'optimiza', 'integra', 'despliega',
+    'tengo que', 'debo', 'hay que', 'toca', 'pendiente'
+  ];
+
   let module = 'ideas';
   let subcat = null;
 
-  if (t.includes('comprar') || t.includes('traer') || t.includes('necesito') || t.includes('falta')) {
+  if (ideaIndicators.some(ind => t.includes(ind))) {
+    module = 'ideas';
+    subcat = null;
+  } else if (containsWholeWord(t, shoppingKeywords)) {
     module = 'compras';
     subcat = 'supermercado';
-  } else if (t.includes('tengo que') || t.includes('debo')) {
+  } else if (containsWholeWord(t, taskKeywords)) {
     module = 'tareas';
     subcat = 'media';
+  } else if (containsWholeWord(t, ['necesito', 'falta', 'faltan'])) {
+    module = 'compras';
+    subcat = 'supermercado';
   }
+
 
   const separatedItems = splitIntoItems(text);
   if (separatedItems.length > 1 && module !== 'compras') {

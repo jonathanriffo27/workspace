@@ -230,6 +230,13 @@ function attachIdeasEvents() {
     }
   });
 
+  // Toggle selection mode class on list
+  if (appState.ideas.selectionMode || appState.ideas.selectedItems.size > 0) {
+    list.classList.add('selection-mode-active');
+  } else {
+    list.classList.remove('selection-mode-active');
+  }
+
   // Render selection bar if active
   if (isSelectionActive('ideas')) {
     renderSelectionBar('ideas');

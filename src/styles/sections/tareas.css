@@ -26,7 +26,8 @@
 }
 
 .item-card.task .drag-handle {
-  align-self: center;
+  align-self: flex-start;
+  margin-top: 1px;
 }
 
 .item-card.task .task-meta-inline { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -94,7 +95,6 @@
 }
 
 .task-edit-fields { 
-  width: 100%; 
   max-height: 0; 
   overflow: hidden; 
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
@@ -103,6 +103,8 @@
   flex-direction: row;
   align-items: flex-start;
   gap: 8px;
+  margin-left: -32px;
+  width: calc(100% + 32px);
 }
 
 .item-card.task.expanded .task-edit-fields { 
