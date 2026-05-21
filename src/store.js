@@ -20,6 +20,7 @@ export const appState = {
     selectedItems: new Set(),
     selectionMode: false,
     loading: true,
+    hasRendered: false,
     limit: 50,
     hasMore: false
   },
@@ -30,6 +31,7 @@ export const appState = {
     selectedItems: new Set(),
     selectionMode: false,
     loading: true,
+    hasRendered: false,
     limit: 50,
     hasMore: false
   },
@@ -40,6 +42,7 @@ export const appState = {
     selectedItems: new Set(),
     selectionMode: false,
     loading: true,
+    hasRendered: false,
     limit: 50,
     hasMore: false
   },

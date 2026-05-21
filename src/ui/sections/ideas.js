@@ -79,7 +79,8 @@ export function renderIdeasSection() {
     const list = section.querySelector('#ideas-list');
     sorted.forEach((idea) => {
       const card = document.createElement('div');
-      card.className = `item-card idea ${idea.archivada ? 'completed' : ''}`;
+      const noAnimateClass = appState.ideas.hasRendered ? 'no-animate' : '';
+      card.className = `item-card idea ${idea.archivada ? 'completed' : ''} ${noAnimateClass}`.trim();
       card.dataset.id = idea.id;
 
       const expandIcon = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M6 9l6 6 6-6"/></svg>`;
@@ -135,6 +136,11 @@ export function renderIdeasSection() {
       `;
       list.appendChild(loadMoreContainer);
     }
+  }
+
+  // After rendering, mark section as rendered to skip animations on subsequent visits
+  if (!appState.ideas.hasRendered) {
+    appState.ideas.hasRendered = true;
   }
 
   // Initialize gesture reordering

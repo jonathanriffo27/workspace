@@ -23,6 +23,10 @@
   border-radius: var(--radius-full);
 }
 
+.no-animate {
+  animation: none !important;
+}
+
 .item-card {
   display: flex;
   align-items: center;
@@ -37,7 +41,7 @@
 }
 
 .item-card:active:not(.dragging) { transform: scale(0.99); }
-.item-card.completed { opacity: 0.4; }
+.item-card.completed { opacity: 0.4; transition: none; }
 .item-card.completed .item-text, .item-card.completed .task-title { text-decoration: line-through; color: var(--text-tertiary); }
 
 .item-content { flex: 1; min-width: 0; }

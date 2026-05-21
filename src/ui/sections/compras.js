@@ -85,7 +85,8 @@ export function renderComprasSection() {
 
     sorted.forEach(item => {
       const card = document.createElement('div');
-      card.className = `item-card ${item.completado ? 'completed' : ''}`;
+      const noAnimateClass = appState.compras.hasRendered ? 'no-animate' : '';
+      card.className = `item-card ${item.completado ? 'completed' : ''} ${noAnimateClass}`.trim();
       card.dataset.id = item.id;
       card.innerHTML = `
         <div class="drag-handle" title="Arrastrar para ordenar">
@@ -128,6 +129,11 @@ export function renderComprasSection() {
       `;
       list.appendChild(loadMoreContainer);
     }
+  }
+
+  // After rendering, mark section as rendered to skip animations on subsequent visits
+  if (!appState.compras.hasRendered) {
+    appState.compras.hasRendered = true;
   }
 
   // Initialize gesture reordering

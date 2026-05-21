@@ -79,7 +79,8 @@ export function renderTareasSection() {
 
     sorted.forEach(tarea => {
       const card = document.createElement('div');
-      card.className = `item-card task ${tarea.completado ? 'completed' : ''}`;
+      const noAnimateClass = appState.tareas.hasRendered ? 'no-animate' : '';
+      card.className = `item-card task ${tarea.completado ? 'completed' : ''} ${noAnimateClass}`.trim();
       card.dataset.id = tarea.id;
       
       const fechaLimiteValue = tarea.fechaLimite ? new Date(tarea.fechaLimite).toISOString().split('T')[0] : '';
@@ -160,7 +161,11 @@ export function renderTareasSection() {
     }
   }
 
-  // Initialize gesture reordering
+  // After rendering, mark section as rendered to skip animations on subsequent visits
+  if (!appState.tareas.hasRendered) {
+    appState.tareas.hasRendered = true;
+  }
+
   initSortable('tareas-list', 'tareas', () => {
     const { items, filter } = appState.tareas;
     const filtered = filter === 'todas' ? items : 

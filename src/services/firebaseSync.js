@@ -85,6 +85,7 @@ export function initComprasSync() {
     }));
     appState.compras.hasMore = snapshot.docs.length === appState.compras.limit;
     appState.compras.loading = false;
+    appState.compras.hasRendered = false;
     saveToStorage(`${STORAGE_KEYS.compras}_${userId}`, appState.compras.items);
     notify();
   });
@@ -109,6 +110,7 @@ export function initIdeasSync() {
     }));
     appState.ideas.hasMore = snapshot.docs.length === appState.ideas.limit;
     appState.ideas.loading = false;
+    appState.ideas.hasRendered = false;
     saveToStorage(`${STORAGE_KEYS.ideas}_${userId}`, appState.ideas.items);
     notify();
   });
@@ -134,6 +136,7 @@ export function initTareasSync() {
     }));
     appState.tareas.hasMore = snapshot.docs.length === appState.tareas.limit;
     appState.tareas.loading = false;
+    appState.tareas.hasRendered = false;
     saveToStorage(`${STORAGE_KEYS.tareas}_${userId}`, appState.tareas.items);
     notify();
   });
