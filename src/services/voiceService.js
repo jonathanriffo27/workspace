@@ -288,7 +288,8 @@ function categorizeInputHeuristic(text) {
     'aprende', 'investiga', 'limpia', 'ordena', 'organiza', 'verifica', 
     'valida', 'analiza', 'completa', 'instala', 'sube', 'publica', 'cambia', 
     'elimina', 'borra', 'resuelve', 'repara', 'optimiza', 'integra', 'despliega',
-    'tengo que', 'debo', 'hay que', 'toca', 'pendiente'
+    'tengo que', 'debo', 'hay que', 'toca', 'pendiente',
+    'dejar', 'deja', 'poner', 'pon', 'llevar', 'lleva', 'guardar', 'guarda', 'sacar', 'saca'
   ];
 
   let module = 'ideas';

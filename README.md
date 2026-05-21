@@ -19,6 +19,14 @@ A premium, mobile-first productivity Single Page Application (SPA) designed for 
 - **Reactive State:** Centralized `appState` for instant UI feedback.
 - **Typography:** DM Serif Display & DM Sans pairing.
 
+## ⚡ Performance Optimizations
+
+- **Code Splitting:** Dynamic imports (`import()`) for routing sections (`compras.js`, `ideas.js`, `tareas.js`) and services (`firebaseSync.js`) to reduce initial main bundle size.
+- **Pagination & Cursors:** Implemented chunked data loading (`limit(50)`) coupled with a "Load More" mechanism to avoid overwhelming the DOM and the network on initial load.
+- **Skeleton UI:** Added skeleton shimmer animations during data fetches to improve perceived load times.
+- **Render State Caching:** Used a custom `hasRendered` state per module to eliminate redundant visual animations (like 1-second fade-ins) when switching between previously loaded tabs.
+- **Isolated User Caching:** Persisted layout and partial data locally using user-specific cache keys (`STORAGE_KEYS.type_userId`).
+
 ## 🛠️ Tech Stack
 
 - **Tooling:** [Vite](https://vitejs.dev/)
