@@ -66,7 +66,8 @@
 }
 
 .user-name {
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -74,37 +75,25 @@
 }
 
 .account-trigger {
-  min-width: 40px;
-  min-height: 40px;
-  max-width: min(156px, calc(100vw - 172px));
-  padding: 5px 8px 5px 5px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  background: var(--surface-soft);
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: var(--shadow-premium);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.account-trigger:hover,
-.account-trigger[aria-expanded="true"] {
-  background: var(--surface-soft-strong);
-  border-color: var(--border-strong);
-}
 
 .account-trigger:active {
   transform: scale(0.98);
-}
-
-.account-trigger-copy {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  align-items: center;
 }
 
 .account-avatar {
@@ -122,13 +111,19 @@
   flex-shrink: 0;
 }
 
+.account-avatar--menu {
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+}
+
 .account-trigger-icon {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 2.1;
   fill: none;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   flex-shrink: 0;
   transition: transform 0.2s ease, color 0.2s ease;
 }
@@ -140,13 +135,13 @@
 
 .account-menu {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   right: 0;
-  width: 100%;
+  width: min(240px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
-  padding: 5px;
+  padding: 6px;
   display: grid;
-  gap: 3px;
+  gap: 4px;
   border-radius: 16px;
   border: 1px solid var(--border-strong);
   background: var(--surface-elevated);
@@ -157,6 +152,30 @@
 
 .account-menu[hidden] {
   display: none;
+}
+
+.account-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 2px;
+}
+
+.account-menu-profile {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-menu-meta {
+  font-size: 10px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .account-menu-copy {
@@ -240,11 +259,11 @@
   }
 
   .account-trigger {
-    padding-inline-end: 5px;
-    max-width: 40px;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
   }
 
-  .account-trigger-copy,
   .account-trigger-icon {
     display: none;
   }
@@ -260,12 +279,17 @@
 }
 
 :root[data-theme="dark"] .user-name {
+  color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .account-menu-meta {
   color: var(--text-secondary);
 }
 
 :root[data-theme="dark"] .account-trigger {
   box-shadow: none;
 }
+
 
 :root[data-theme="dark"] .account-menu {
   border-color: var(--border-subtle);

@@ -182,6 +182,7 @@ export function updateHeaderForUser(user, options = {}) {
   if (!user) return;
 
   const displayName = getDisplayName(user);
+  const accountMeta = user.email && user.email !== displayName ? user.email : 'Cuenta personal';
   const initials = getInitials(displayName);
   const isLightTheme = options.getTheme?.() === 'light';
 
@@ -191,19 +192,23 @@ export function updateHeaderForUser(user, options = {}) {
     <button
       class="account-trigger"
       type="button"
-      aria-label="Abrir menú de cuenta"
+      aria-label="Abrir menú de cuenta de "
       aria-haspopup="menu"
       aria-expanded="false"
     >
-      <span class="account-avatar" aria-hidden="true">${initials}</span>
-      <span class="account-trigger-copy">
-        <span class="user-name">${displayName}</span>
-      </span>
+      <span class="account-avatar" aria-hidden="true"></span>
       <svg class="account-trigger-icon" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
     <div class="account-menu" role="menu" hidden>
+      <div class="account-menu-header">
+        <span class="account-avatar account-avatar--menu" aria-hidden="true"></span>
+        <div class="account-menu-profile">
+          <span class="user-name"></span>
+          <span class="account-menu-meta"></span>
+        </div>
+      </div>
       <button
         class="account-menu-button account-theme-button"
         type="button"
@@ -243,6 +248,16 @@ export function updateHeaderForUser(user, options = {}) {
   const menu = userInfo.querySelector('.account-menu');
   const themeButton = userInfo.querySelector('.account-theme-button');
   const logoutButton = userInfo.querySelector('.account-menu-button--danger');
+  const triggerAvatar = userInfo.querySelector('.account-trigger .account-avatar');
+  const menuAvatar = userInfo.querySelector('.account-avatar--menu');
+  const menuName = userInfo.querySelector('.account-menu-profile .user-name');
+  const menuMeta = userInfo.querySelector('.account-menu-meta');
+
+  trigger.setAttribute('aria-label', `Abrir menú de cuenta de ${displayName}`);
+  if (triggerAvatar) triggerAvatar.textContent = initials;
+  if (menuAvatar) menuAvatar.textContent = initials;
+  if (menuName) menuName.textContent = displayName;
+  if (menuMeta) menuMeta.textContent = accountMeta;
 
   const handleDocumentPointerDown = (event) => {
     if (menu.hidden) return;
