@@ -6,7 +6,10 @@ export function initSortable(listId, type, getSortedItems) {
   const list = document.getElementById(listId);
   if (!list) return;
 
+  const DRAG_THRESHOLD_PX = 8;
+
   let dragEl = null;
+  let pendingDragEl = null;
   let startY = 0;
   let isDragging = false;
 
@@ -15,6 +18,18 @@ export function initSortable(listId, type, getSortedItems) {
       return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
     }
     return { clientX: e.clientX, clientY: e.clientY };
+  };
+
+  const activateDrag = (card) => {
+    isDragging = true;
+    dragEl = card;
+
+    // Apply dragging class only after the movement threshold is met.
+    dragEl.classList.add('dragging');
+    dragEl.style.transform = 'translateY(0px)';
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.userSelect = 'none';
   };
 
   const onStart = (e) => {
@@ -27,25 +42,13 @@ export function initSortable(listId, type, getSortedItems) {
     const card = e.target.closest('.item-card');
     if (!card) return;
 
-    // Prevent default to avoid scrolling/selection during drag
-    if (e.cancelable) e.preventDefault();
-
     const coords = getCoordinates(e);
     startY = coords.clientY;
+    pendingDragEl = card;
+    dragEl = null;
+    isDragging = false;
 
-    isDragging = true;
-    dragEl = card;
-
-    // Apply dragging class and immediately force transform to none
-    // so there's no flash from the CSS transform: scale(1.02)
-    dragEl.classList.add('dragging');
-    dragEl.style.transform = 'translateY(0px)';
-
-    // Disable scrolling and user selection
-    document.body.style.overflow = 'hidden';
-    document.body.style.userSelect = 'none';
-
-    // Register global mouse tracking events dynamically on drag start
+    // Register global mouse tracking events dynamically on pointer down.
     if (e.type === 'mousedown') {
       window.addEventListener('mousemove', onMove, { passive: false });
       window.addEventListener('mouseup', onEnd);
@@ -53,12 +56,22 @@ export function initSortable(listId, type, getSortedItems) {
   };
 
   const onMove = (e) => {
-    if (!isDragging || !dragEl) return;
+    if (!pendingDragEl && !dragEl) return;
 
-    if (e.cancelable) e.preventDefault();
     const coords = getCoordinates(e);
     const currentY = coords.clientY;
     const deltaY = currentY - startY;
+
+    if (!isDragging) {
+      if (!pendingDragEl || Math.abs(deltaY) < DRAG_THRESHOLD_PX) return;
+      if (e.cancelable) e.preventDefault();
+      activateDrag(pendingDragEl);
+      pendingDragEl = null;
+    } else if (e.cancelable) {
+      e.preventDefault();
+    }
+
+    if (!dragEl) return;
 
     dragEl.style.transform = `translateY(${deltaY}px)`;
     dragEl.style.zIndex = '1000';
@@ -136,6 +149,7 @@ export function initSortable(listId, type, getSortedItems) {
   const reset = () => {
     isDragging = false;
     dragEl = null;
+    pendingDragEl = null;
     document.body.style.overflow = '';
     document.body.style.userSelect = '';
   };

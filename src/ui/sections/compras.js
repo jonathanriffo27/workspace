@@ -99,8 +99,10 @@ export function renderComprasSection() {
             <circle cx="15" cy="19" r="1.5" fill="currentColor"/>
           </svg>
         </div>
-        <div class="checkbox ${item.completado ? 'checked' : ''}" data-id="${item.id}">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <div class="checkbox-hitbox" data-id="${item.id}">
+          <div class="checkbox ${item.completado ? 'checked' : ''}">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
         </div>
         <div class="item-content">
           <div class="item-row">
@@ -178,7 +180,7 @@ function attachComprasEvents() {
   }
 
   list.addEventListener('click', async (e) => {
-    const checkbox = e.target.closest('.checkbox');
+    const checkbox = e.target.closest('.checkbox-hitbox');
     const deleteBtn = e.target.closest('.delete-btn');
     const priorityToggleBtn = e.target.closest('.priority-toggle-btn');
     const card = e.target.closest('.item-card');

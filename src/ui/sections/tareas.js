@@ -97,8 +97,10 @@ export function renderTareasSection() {
             <circle cx="15" cy="19" r="1.5" fill="currentColor"/>
           </svg>
         </div>
-        <div class="checkbox ${tarea.completado ? 'checked' : ''}" data-id="${tarea.id}">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <div class="checkbox-hitbox" data-id="${tarea.id}">
+          <div class="checkbox ${tarea.completado ? 'checked' : ''}">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
         </div>
         <div class="item-content">
           <div class="item-row">
@@ -213,7 +215,7 @@ function attachTareasEvents() {
   });
 
   list.addEventListener('click', async (e) => {
-    const checkbox = e.target.closest('.checkbox');
+    const checkbox = e.target.closest('.checkbox-hitbox');
     const deleteBtn = e.target.closest('.delete-btn');
     const expandBtn = e.target.closest('.expand-indicator-btn') || e.target.closest('.item-row') || e.target.closest('.item-text');
     const saveBtn = e.target.closest('.save-task-btn');
@@ -256,7 +258,7 @@ function attachTareasEvents() {
       });
     }
 
-    if (expandBtn && !e.target.closest('.checkbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.priority-toggle-btn') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea') && !e.target.closest('.is-editing')) {
+    if (expandBtn && !e.target.closest('.checkbox-hitbox') && !e.target.closest('.delete-btn') && !e.target.closest('.save-task-btn') && !e.target.closest('.priority-toggle-btn') && !e.target.closest('.studio-date-input') && !e.target.closest('textarea') && !e.target.closest('.is-editing')) {
       const cardEl = expandBtn.closest('.item-card');
       list.querySelectorAll('.item-card.expanded').forEach(c => {
         if (c !== cardEl) c.classList.remove('expanded');

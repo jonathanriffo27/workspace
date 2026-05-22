@@ -11,8 +11,13 @@
   padding: 6px 8px 6px 12px;
 }
 
+.item-card.idea .checkbox-hitbox {
+  flex-shrink: 0;
+  margin-top: -6px;
+}
+
 .item-card.idea .checkbox {
-  margin-top: 6px; /* Align with first line of text */
+  margin-top: 0;
 }
 
 .item-card.idea .drag-handle {
