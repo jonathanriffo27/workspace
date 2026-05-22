@@ -249,3 +249,24 @@
     display: none;
   }
 }
+
+
+:root[data-theme="dark"] .header {
+  padding: 16px 24px 12px;
+}
+
+:root[data-theme="dark"] .header-subtitle {
+  background: var(--accent-glow);
+}
+
+:root[data-theme="dark"] .user-name {
+  color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .account-trigger {
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .account-menu {
+  border-color: var(--border-subtle);
+}

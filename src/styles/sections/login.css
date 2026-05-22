@@ -100,3 +100,12 @@
   height: 1px;
   background: var(--border-subtle);
 }
+
+
+:root[data-theme="dark"] .login-subtitle {
+  background: var(--accent-glow);
+}
+
+:root[data-theme="dark"] .login-tab.active {
+  box-shadow: none;
+}
