@@ -129,8 +129,9 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  margin-left: -8px;
-  margin-right: -6px;
+  margin-left: 0;
+  margin-right: -15px;
+  transform: translateX(-7px);
   color: var(--text-tertiary);
   cursor: grab;
   user-select: none;

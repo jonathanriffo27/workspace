@@ -41,8 +41,6 @@ export function initSortable(listId, type, getSortedItems) {
     dragEl.classList.add('dragging');
     dragEl.style.transform = 'translateY(0px)';
 
-    if ('vibrate' in navigator) navigator.vibrate(50);
-
     // Disable scrolling and user selection
     document.body.style.overflow = 'hidden';
     document.body.style.userSelect = 'none';

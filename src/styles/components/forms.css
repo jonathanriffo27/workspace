@@ -108,7 +108,7 @@
   font-size: 15px;
 }
 
-:root[data-theme="dark"] .checkbox {
+:root[data-theme="dark"] .checkbox:not(.checked) {
   border: 1.5px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.06);
 }
