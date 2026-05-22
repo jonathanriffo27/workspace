@@ -35,7 +35,7 @@
   background: var(--accent-primary);
   border: none;
   border-radius: var(--radius-md);
-  color: #000;
+  color: var(--text-on-accent);
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
@@ -71,34 +71,51 @@
 
 .btn-google:hover {
   background: var(--bg-secondary);
-  border-color: var(--text-tertiary);
+  border-color: var(--google-btn-hover-border);
 }
 
 .btn-google:active {
   transform: scale(0.98);
 }
 
-.logout-btn {
-  width: 36px;
-  height: 36px;
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  cursor: pointer;
+.account-menu-button {
+  min-height: 36px;
+  min-width: 100%;
+  width: auto;
+  padding: 7px 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
-.logout-btn:hover {
-  background: var(--bg-tertiary);
+.account-menu-button:hover {
+  background: var(--surface-soft);
+  border-color: var(--border-subtle);
+}
+
+.account-menu-button:active {
+  transform: scale(0.98);
+}
+
+.account-menu-button:hover .account-menu-icon {
   color: var(--text-primary);
 }
 
-.logout-btn:active {
-  transform: scale(0.95);
+.account-menu-button--danger:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
+}
+
+.account-menu-button--danger:hover .account-menu-label,
+.account-menu-button--danger:hover .account-menu-icon {
+  color: var(--danger-text-strong);
 }
 
 .selection-delete-btn {
@@ -106,10 +123,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
   border-radius: var(--radius-sm);
-  color: #FF5A5A;
+  color: var(--danger-text-strong);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -117,9 +134,9 @@
 }
 
 .selection-delete-btn:hover {
-  background: rgba(239, 68, 68, 0.25);
-  border-color: rgba(239, 68, 68, 0.5);
-  color: #FFFFFF;
+  background: var(--danger-soft-hover);
+  border-color: var(--danger-border-hover);
+  color: var(--danger-text-on-soft);
 }
 
 .selection-delete-btn:active {
@@ -131,8 +148,8 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-size: 12px;
@@ -142,7 +159,7 @@
 }
 
 .selection-move-btn:hover {
-  background: rgba(245, 158, 11, 0.1);
+  background: var(--accent-soft);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
 }
@@ -157,8 +174,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
@@ -166,8 +183,8 @@
 }
 
 .selection-cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--surface-soft-strong);
+  border-color: var(--border-strong);
   color: var(--text-primary);
 }
 
@@ -184,4 +201,3 @@
   stroke-width: 2.5;
   fill: none;
 }
-

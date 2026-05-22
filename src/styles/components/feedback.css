@@ -1,11 +1,12 @@
 /* Toast */
 .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 8px; width: calc(100% - 40px); max-width: 320px; }
-.toast { padding: 10px 16px; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--shadow-premium); color: var(--text-primary); font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; animation: toastIn 0.4s ease; position: relative; overflow: hidden; }
+.toast { padding: 10px 16px; background: var(--glass-overlay); backdrop-filter: blur(16px); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--shadow-premium); color: var(--text-primary); font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; animation: toastIn 0.4s ease; position: relative; overflow: hidden; }
 .toast::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent-primary); }
 .toast.success::before { background: var(--success); }
 .toast.error::before { background: var(--danger); }
 .toast.revert::before, .toast.info::before { background: var(--info); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
 .toast.processing .toast-icon { display: flex; align-items: center; justify-content: center; animation: toastSpin 0.8s linear infinite; }
 @keyframes toastSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -13,7 +14,7 @@
 .voice-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at bottom center, rgba(15, 15, 15, 0.94), rgba(5, 5, 5, 0.98));
+  background: var(--voice-overlay-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: 2000;
@@ -27,17 +28,12 @@
 
 .pixel-glow {
   position: absolute;
-  bottom: calc(2px + env(safe-area-inset-bottom, 0px)); /* Centered on the button */
+  bottom: calc(2px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   width: 60px;
   height: 60px;
   transform: translate(-50%, 0) scale(0);
-  background: radial-gradient(circle, 
-    #fff 0%, 
-    var(--accent-primary) 20%, 
-    rgba(245, 158, 11, 0.4) 50%, 
-    transparent 75%
-  );
+  background: radial-gradient(circle, #fff 0%, var(--accent-primary) 20%, rgba(245, 158, 11, 0.4) 50%, transparent 75%);
   border-radius: 50%;
   filter: blur(8px);
   opacity: 0;
@@ -45,7 +41,6 @@
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Wave Effect (Android 16 style) */
 .pixel-glow::after {
   content: "";
   position: absolute;
@@ -153,7 +148,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--modal-overlay);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -168,13 +163,13 @@
 }
 
 .modal {
-  background: var(--bg-secondary);
+  background: var(--surface-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 24px;
   max-width: 360px;
   width: 90%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-elevated);
 }
 
 .modal-title {
@@ -215,13 +210,13 @@
 }
 
 .modal-btn.secondary:hover {
-  background: var(--border-subtle);
+  background: var(--surface-soft-strong);
   color: var(--text-primary);
 }
 
 .modal-btn.primary {
   background: var(--accent-primary);
-  color: var(--bg-primary);
+  color: var(--text-on-accent);
 }
 
 .modal-btn.primary:hover {
@@ -240,12 +235,12 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--accent-glow);
+  background: var(--glass-overlay);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--selection-border);
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.1);
+  box-shadow: var(--selection-shadow);
   z-index: 110;
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -277,8 +272,8 @@
 
 /* Selection Mode Checkbox Overrides */
 .items-list.selection-mode-active .checkbox {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+  background: var(--surface-soft) !important;
+  border: 1.5px solid var(--border-strong) !important;
   box-shadow: none !important;
 }
 
@@ -296,7 +291,7 @@
 .items-list.selection-mode-active .item-card.selected .checkbox svg {
   opacity: 1 !important;
   transform: scale(1) !important;
-  stroke: var(--bg-primary) !important;
+  stroke: var(--text-on-accent) !important;
 }
 
 .items-list.selection-mode-active .item-card.selected {
@@ -324,10 +319,10 @@
   transform: translateX(-100%);
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.03) 20%,
-    rgba(255, 255, 255, 0.08) 60%,
-    rgba(255, 255, 255, 0) 100%
+    var(--skeleton-shimmer-1) 0%,
+    var(--skeleton-shimmer-2) 20%,
+    var(--skeleton-shimmer-3) 60%,
+    var(--skeleton-shimmer-1) 100%
   );
   animation: shimmer 1.5s infinite;
 }
@@ -342,7 +337,7 @@
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--skeleton-fill);
   flex-shrink: 0;
 }
 
@@ -356,21 +351,21 @@
 .skeleton-text {
   height: 12px;
   width: 50%;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--skeleton-fill);
   border-radius: 4px;
 }
 
 .skeleton-badge {
   height: 16px;
   width: 64px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--skeleton-fill);
   border-radius: var(--radius-full);
 }
 
 .skeleton-stat {
   height: 48px;
   width: 80px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--skeleton-fill-soft);
   border-radius: var(--radius-sm);
   animation: shimmer-stat 2s infinite alternate;
 }
@@ -383,7 +378,6 @@
 .skeleton-input {
   height: 48px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--skeleton-fill-soft);
   border-radius: var(--radius-md);
 }
-

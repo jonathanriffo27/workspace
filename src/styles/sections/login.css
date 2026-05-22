@@ -28,9 +28,13 @@
 }
 
 .login-subtitle {
+  display: inline-flex;
   font-size: 14px;
   color: var(--accent-primary);
   font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
 }
 
 .login-tabs {
@@ -58,6 +62,7 @@
 .login-tab.active {
   background: var(--bg-secondary);
   color: var(--text-primary);
+  box-shadow: var(--shadow-premium);
 }
 
 .login-forms {
@@ -94,21 +99,4 @@
   flex: 1;
   height: 1px;
   background: var(--border-subtle);
-}
-
-/* User Info in Header */
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;
-}
-
-.user-name {
-  font-size: 13px;
-  color: var(--text-secondary);
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }

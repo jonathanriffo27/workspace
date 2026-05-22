@@ -24,6 +24,7 @@ export function renderTareasSection() {
 
   const totalTareas = items.filter(i => !i.archivada).length;
   const archivedTareas = items.filter(i => i.archivada).length;
+  const pendingTareas = items.filter(i => !i.completado && !i.archivada).length;
 
   section.innerHTML = `
     <div class="stats-bar">
@@ -36,7 +37,7 @@ export function renderTareasSection() {
         <span class="stat-label">Hecho</span>
       </div>
       <div class="stat-item pending ${filter === 'pendientes' ? 'active' : ''}" data-filter="pendientes">
-        <span class="stat-value">${totalTareas - archivedTareas}</span>
+        <span class="stat-value">${pendingTareas}</span>
         <span class="stat-label">Pendiente</span>
       </div>
     </div>

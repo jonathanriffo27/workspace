@@ -36,12 +36,13 @@
   backdrop-filter: blur(8px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-premium);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   animation: slideIn 0.3s ease-out;
 }
 
 .item-card:active:not(.dragging) { transform: scale(0.99); }
-.item-card.completed { opacity: 0.4; transition: none; }
+.item-card.completed { opacity: 0.48; transition: none; }
 .item-card.completed .item-text, .item-card.completed .task-title { text-decoration: line-through; color: var(--text-tertiary); }
 
 .item-content { flex: 1; min-width: 0; }
@@ -71,15 +72,15 @@
 }
 
 .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-full); font-size: 9px; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; flex-shrink: 0; }
-.badge-categoria { background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border-color: var(--border-subtle); }
-.priority-dot { 
-  width: 10px; 
-  height: 10px; 
-  border-radius: 50%; 
-  display: inline-block; 
-  flex-shrink: 0; 
+.badge-categoria { background: var(--surface-soft); color: var(--text-secondary); border-color: var(--border-subtle); }
+.priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
   background: var(--priority-media);
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .priority-toggle-btn {
@@ -100,7 +101,7 @@
 
 .item-card.selected {
   border-color: var(--accent-primary);
-  background: rgba(245, 158, 11, 0.1);
+  background: var(--accent-soft);
 }
 
 .item-card.selected .item-text,
@@ -113,10 +114,10 @@
 }
 
 .item-card.dragging {
-  opacity: 0.8;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  opacity: 0.9;
+  box-shadow: var(--shadow-drag);
   border-color: var(--accent-primary);
-  background: var(--bg-tertiary);
+  background: var(--surface-elevated);
   transition: none !important;
   pointer-events: none;
   animation: none;
@@ -147,11 +148,10 @@
 .drag-handle:hover,
 .drag-handle:active {
   color: var(--accent-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-soft);
 }
 
 .item-card.dragging .drag-handle {
   color: var(--accent-primary);
   cursor: grabbing;
 }
-
