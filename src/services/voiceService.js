@@ -131,7 +131,7 @@ async function processVoiceCapture(text) {
 
     const getDefaultSubcat = (mod) => {
       if (mod === 'compras') return 'supermercado';
-      if (mod === 'tareas') return 'media';
+      if (mod === 'tareas') return null;
       return null;
     };
 
@@ -184,7 +184,7 @@ async function processVoiceCapture(text) {
         return addDoc(collections.compras, { nombre: title, categoria: subcat || 'supermercado', prioridad: false, posicion: currentMinPos.compras, completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else if (module === 'tareas') {
         currentMinPos.tareas -= 1;
-        return addDoc(collections.tareas, { titulo: title, prioridad: subcat || false, posicion: currentMinPos.tareas, fechaLimite: null, notas: notes || '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
+        return addDoc(collections.tareas, { titulo: title, prioridad: subcat || null, posicion: currentMinPos.tareas, fechaLimite: null, notas: notes || '', completado: false, creadoEn: serverTimestamp(), userId: appState.userId });
       } else {
         currentMinPos.ideas -= 1;
         return addDoc(collections.ideas, { titulo: title, notas: notes || '', prioridad: false, posicion: currentMinPos.ideas, archivada: false, creadoEn: serverTimestamp(), userId: appState.userId });

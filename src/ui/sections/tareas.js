@@ -187,7 +187,7 @@ function attachTareasEvents() {
   const handleAdd = async () => {
     const titulo = input.value.trim();
     if (!titulo) return;
-    if (await addItem('tareas', { titulo, prioridad: false, fechaLimite: null, notas: '', completado: false })) {
+    if (await addItem('tareas', { titulo, prioridad: null, fechaLimite: null, notas: '', completado: false })) {
         input.value = '';
         showToast('Tarea añadida', 'success');
     }

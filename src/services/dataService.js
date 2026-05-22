@@ -192,7 +192,7 @@ export async function moveItem(id, fromType, toType) {
     }
 
     // Default values for specifics
-    newItem.prioridad = false;
+    newItem.prioridad = toType === 'tareas' ? null : false;
     if (toType === 'compras') newItem.categoria = 'supermercado';
     if (toType === 'tareas') {
       newItem.fechaLimite = null;
