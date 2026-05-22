@@ -235,12 +235,18 @@ async function categorizeWithLLM(text) {
         model: "openrouter/free",
         messages: [{ 
           role: "system", 
-          content: "You are a smart task organizer. For compras (shopping lists, items): return category: 'compras' and items: array of strings. For tareas (actions, tasks, to-dos, things starting with action verbs like 'mejorar', 'crear', 'diseñar', 'hacer'): return category: 'tareas' and items: split into title (action) and notes (detail). Do not split a single task into multiple items just because it contains context words like 'con', 'para', 'sobre' or 'porque'. Only return multiple tareas when the input is clearly a list of separate actions. For ideas (thoughts, notes, creative concepts, or generic/ambiguous test statements like 'prueba 1', 'test', 'hola'): return category: 'ideas' and items: ALWAYS put the FULL original text in notes, and create a short 3-5 word title as summary. Do not split a single idea into multiple items because of context words like 'con', 'para', 'sobre' or 'porque'; only split if the user is explicitly listing separate ideas. Examples: 'comprar leche pan queso' -> {category: 'compras', items: ['Leche', 'Pan', 'Queso']}. 'crear un agente de marketing' -> {category: 'tareas', items: [{title: 'Crear un agente de marketing', notes: ''}]}. 'mejorar interfaz de items' -> {category: 'tareas', items: [{title: 'Mejorar interfaz de items', notes: ''}]}. 'crear tema claro con codex en su capa gratuita' -> {category: 'tareas', items: [{title: 'Crear tema claro con codex en su capa gratuita', notes: ''}]}. 'tengo que llamar a juan para confirmar la reunion' -> {category: 'tareas', items: [{title: 'Llamar a Juan', notes: 'Confirmar la reunión'}]}. 'prueba 1' -> {category: 'ideas', items: [{title: 'Prueba 1', notes: 'prueba 1'}]}. 'idea sobre usar formato HTML para que sea mas visual' -> {category: 'ideas', items: [{title: 'Formato HTML', notes: 'idea sobre usar formato HTML para que sea mas visual'}]}." 
-        }, { role: "user", content: text }]
+          content: "You are a smart task organizer. For compras (shopping lists): return {category: 'compras', items: ['Item 1', 'Item 2', ...]}. If the user lists many items even without commas or 'and', split them (e.g., 'pan huevo leche' -> ['Pan', 'Huevo', 'Leche']). For tareas: return {category: 'tareas', items: [{title: 'Action', notes: 'Detail'}]}. For ideas: return {category: 'ideas', items: [{title: 'Summary', notes: 'Full original text'}]}. ONLY return the JSON object." 
+        }, { 
+          role: "user", 
+          content: `Analyze this text and categorize it: "${text}". Examples: 'comprar pan huevo leche' -> {"category": "compras", "items": ["Pan", "Huevo", "Leche"]}. 'recordar llamar a juan mañana' -> {"category": "tareas", "items": [{"title": "Llamar a Juan", "notes": "Mañana"}]}.` 
+        }]
       })
     });
     const data = await response.json();
-    const result = JSON.parse(data.choices[0].message.content.match(/\{.*\}/s)[0]);
+    const content = data.choices[0].message.content;
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found");
+    const result = JSON.parse(jsonMatch[0]);
     return result;
   } catch (e) {
     return categorizeInputHeuristic(text);
@@ -307,8 +313,8 @@ function categorizeInputHeuristic(text) {
     subcat = 'supermercado';
   }
 
-
-  const separatedItems = splitIntoItems(text, module);
+  const cleanedText = cleanVoiceText(text);
+  const separatedItems = splitIntoItems(cleanedText, module);
   if (separatedItems.length > 1) {
     return { module, subcat, items: separatedItems.map(item => ({ title: cleanVoiceText(item), notes: '' })) };
   }

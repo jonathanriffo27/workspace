@@ -93,20 +93,61 @@ export function splitIntoItems(text, module = 'generic') {
   let items = [normalizeVoiceItem(text)];
 
   if (module === 'compras') {
-    const separators = [
+    const mainSeparators = [
       /\s+y\s+/gi,
       /\s+e\s+/gi,
       /,\s*/g,
       /\s+más\s+/gi,
-      /\s+con\s+/gi,
       /\s+además\s+de\s+/gi
     ];
 
-    separators.forEach(pattern => {
+    mainSeparators.forEach(pattern => {
       items = splitByPattern(items, pattern);
     });
 
-    return items;
+    // Smart space-based splitting for remaining segments
+    const connectors = ['de', 'del', 'con', 'en', 'para', 'a', 'al'];
+    const articles = ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'mi', 'mis'];
+    const quantifiers = ['kilo', 'kilos', 'gramos', 'gr', 'litro', 'litros', 'paquete', 'paquetes', 'bote', 'botes', 'lata', 'latas', 'docena', 'docenas', 'media', 'medio'];
+
+    return items.flatMap(segment => {
+      const words = segment.split(/\s+/);
+      if (words.length <= 1) return segment;
+
+      const result = [];
+      let currentItem = [];
+
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i].toLowerCase();
+        const nextWord = words[i + 1]?.toLowerCase();
+        
+        currentItem.push(words[i]);
+
+        // Decidir si el siguiente espacio es un separador o parte del mismo item
+        // NO separamos si:
+        // 1. La palabra actual es un artículo o cuantificador (ej: "un", "kilo")
+        // 2. La siguiente palabra es un conector (ej: "de", "con")
+        // 3. La palabra actual es un conector (ej: "aceite de" -> no separar aquí)
+        
+        const isArticle = articles.includes(word);
+        const isQuantifier = quantifiers.includes(word);
+        const isConnector = connectors.includes(word);
+        const nextIsConnector = nextWord && connectors.includes(nextWord);
+
+        const shouldKeepTogether = isArticle || isQuantifier || isConnector || nextIsConnector;
+
+        if (!shouldKeepTogether && i < words.length - 1) {
+          result.push(currentItem.join(' '));
+          currentItem = [];
+        }
+      }
+
+      if (currentItem.length > 0) {
+        result.push(currentItem.join(' '));
+      }
+
+      return result;
+    });
   }
 
   items = splitByPattern(items, /(?:\s*[;,]\s*|\s*\.\s+|\n+)/g);
@@ -121,8 +162,9 @@ export function splitIntoItems(text, module = 'generic') {
 export function cleanVoiceText(text) {
   const prefixes = [
     'comprar', 'traer', 'necesito', 'falta', 'lista de',
-    'tengo que', 'debo', 'recordar', 'poner', 'anotar',
-    'un ', 'una ', 'unos ', 'unas ', 'el ', 'la '
+    'tengo que', 'hay que', 'debo', 'recordar', 'poner', 'anotar',
+    'toca ', 'pon ', 'ponme ', 'añadir ', 'agrega ',
+    'un ', 'una ', 'unos ', 'unas ', 'el ', 'la ', 'los ', 'las '
   ];
 
   let cleaned = text;
