@@ -210,3 +210,13 @@
 :root[data-theme="dark"] .btn-google:hover {
   border-color: var(--text-tertiary);
 }
+
+:root[data-theme="dark"] .selection-move-btn,
+:root[data-theme="dark"] .selection-cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme="dark"] .selection-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+}

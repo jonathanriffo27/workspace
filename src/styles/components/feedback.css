@@ -219,6 +219,15 @@
   color: var(--text-on-accent);
 }
 
+:root[data-theme="dark"] .items-list.selection-mode-active .checkbox {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+:root[data-theme="dark"] .items-list.selection-mode-active .item-card.selected .checkbox svg {
+  stroke: var(--bg-primary) !important;
+}
+
 .modal-btn.primary:hover {
   background: var(--accent-hover);
 }

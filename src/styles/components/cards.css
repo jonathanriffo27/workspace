@@ -155,3 +155,35 @@
   color: var(--accent-primary);
   cursor: grabbing;
 }
+
+:root[data-theme="dark"] .item-card {
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+:root[data-theme="dark"] .item-card.completed {
+  opacity: 0.4;
+}
+
+:root[data-theme="dark"] .badge-categoria {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme="dark"] .priority-dot {
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+:root[data-theme="dark"] .item-card.selected {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+:root[data-theme="dark"] .item-card.dragging {
+  opacity: 0.8;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  background: var(--bg-tertiary);
+}
+
+:root[data-theme="dark"] .drag-handle:hover,
+:root[data-theme="dark"] .drag-handle:active {
+  background: rgba(255, 255, 255, 0.05);
+}

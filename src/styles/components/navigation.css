@@ -7,8 +7,8 @@
   padding: 8px 16px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-top: 1px solid var(--border-subtle);
   z-index: 100;
 }
@@ -45,4 +45,8 @@
 .nav-item.recording {
   animation: nav-pulse 1.5s infinite;
   border-radius: var(--radius-md);
+}
+
+:root[data-theme="dark"] .nav-item {
+  transition: all 0.3s ease;
 }

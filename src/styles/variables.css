@@ -27,13 +27,14 @@
   color-scheme: dark;
   --theme-color: #0F0F0F;
   --icon-filter: none;
-  --app-shell-bg: var(--glass-bg);
+  --app-shell-bg: #191919;
+  --glass-blur: blur(16px);
 
   --bg-primary: #0A0A0A;
   --bg-secondary: #121212;
   --bg-tertiary: #1A1A1A;
   --surface-card: rgba(28, 28, 28, 0.7);
-  --surface-elevated: rgba(20, 20, 20, 0.92);
+  --surface-elevated: #1A1A1A;
   --surface-soft: rgba(255, 255, 255, 0.05);
   --surface-soft-strong: rgba(255, 255, 255, 0.08);
   --glass-bg: rgba(15, 15, 15, 0.8);
@@ -43,11 +44,11 @@
   --text-primary: #FFFFFF;
   --text-secondary: #A1A1AA;
   --text-tertiary: #525252;
-  --text-placeholder: #6B7280;
+  --text-placeholder: #525252;
   --text-on-accent: #000000;
 
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-strong: rgba(255, 255, 255, 0.2);
   --border-focus: rgba(245, 158, 11, 0.4);
 
   --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
@@ -68,7 +69,7 @@
   --skeleton-fill-soft: rgba(255, 255, 255, 0.03);
 
   --modal-overlay: rgba(0, 0, 0, 0.6);
-  --selection-border: rgba(245, 158, 11, 0.2);
+  --selection-border: var(--accent-glow);
   --selection-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.1);
 
   --danger-soft: rgba(239, 68, 68, 0.15);
@@ -86,6 +87,7 @@
   --theme-color: #F6F2EA;
   --icon-filter: brightness(0) saturate(100%) invert(12%) sepia(11%) saturate(596%) hue-rotate(356deg) brightness(94%) contrast(93%);
   --app-shell-bg: var(--bg-primary);
+  --glass-blur: blur(16px);
 
   --bg-primary: #F6F2EA;
   --bg-secondary: rgba(255, 252, 246, 0.88);

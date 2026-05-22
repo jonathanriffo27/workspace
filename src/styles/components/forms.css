@@ -102,3 +102,26 @@
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
+
+:root[data-theme="dark"] .action-input .input-field,
+:root[data-theme="dark"] .search-field {
+  font-size: 15px;
+}
+
+:root[data-theme="dark"] .checkbox {
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="dark"] .checkbox svg {
+  stroke: var(--bg-primary);
+}
+
+:root[data-theme="dark"] .chip.active {
+  color: var(--bg-primary);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+:root[data-theme="dark"] .form-group .input-field {
+  transition: border-color 0.2s ease;
+}
