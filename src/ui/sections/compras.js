@@ -50,7 +50,7 @@ export function renderComprasSection() {
     </div>
 
     <div class="input-wrapper">
-      ${renderActionInput('compras-input', 'Añadir producto...')}
+      ${renderActionInput('compras-input', 'Escribe un nuevo producto...')}
     </div>
 
     <div class="items-list" id="compras-list">

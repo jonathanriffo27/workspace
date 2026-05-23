@@ -43,7 +43,7 @@ export function renderTareasSection() {
     </div>
 
     <div class="input-wrapper">
-      ${renderActionInput('tarea-input', 'Nueva tarea...')}
+      ${renderActionInput('tarea-input', 'Escribe una nueva tarea...')}
     </div>
 
     <div class="items-list" id="tareas-list">
