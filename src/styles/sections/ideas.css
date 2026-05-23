@@ -71,24 +71,9 @@
   cursor: text;
 }
 
-.item-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 32px;
-}
-
-.item-card.idea:not(.expanded) .item-actions {
-  gap: 0;
-}
-
-.item-card.idea.expanded .item-actions {
-  gap: 8px;
-}
-
 .idea-notes-row { 
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   gap: 8px;
   max-height: 0; 
   overflow: hidden; 
@@ -99,8 +84,8 @@
 }
 
 .item-card.idea.expanded .idea-notes-row { 
-  max-height: 600px; 
-  padding: 8px 0 7px; 
+  max-height: 250px; 
+  padding: 6px 0 6px; 
   opacity: 1; 
 }
 
@@ -109,29 +94,50 @@
   min-width: 0;
 }
 
-.idea-notes-row .save-idea-btn {
+.actions-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   align-self: flex-end;
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  margin-bottom: -4px;
+}
+
+.actions-column .btn-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--accent-primary);
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: -5px;
 }
 
-.idea-notes-row .save-idea-btn svg {
-  width: 18px;
-  height: 18px;
+.actions-column .delete-btn {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.actions-column .delete-btn:hover {
+  color: var(--error);
+  opacity: 1;
+}
+
+.actions-column .save-idea-btn {
+  color: var(--accent-primary);
+}
+
+.idea-notes-row .save-idea-btn svg,
+.idea-notes-row .delete-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .item-card.idea textarea {
-  min-height: 120px;
-  padding: 10px;
+  min-height: 60px;
+  padding: 8px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);

@@ -109,9 +109,6 @@ export function renderIdeasSection() {
               <button class="btn-icon priority-toggle-btn ${idea.prioridad ? 'active' : ''}" data-id="${idea.id}" title="${idea.prioridad ? 'Quitar prioridad' : 'Destacar'}">
                 <svg viewBox="0 0 24 24" fill="${idea.prioridad ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
               </button>
-              <button class="btn-icon delete-btn" data-id="${idea.id}" title="Eliminar idea">
-                <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
               <button class="btn-icon expand-indicator-btn" title="Expandir/Contraer">
                 ${expandIcon}
               </button>
@@ -119,9 +116,14 @@ export function renderIdeasSection() {
           </div>
           <div class="idea-notes-row">
             <textarea data-id="${idea.id}" placeholder="Desarrolla tu idea aquí..."></textarea>
-            <button class="btn-icon btn-icon--primary save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
-              ${saveIcon}
-            </button>
+            <div class="actions-column">
+              <button class="btn-icon delete-btn" data-id="${idea.id}" title="Eliminar idea">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="btn-icon btn-icon--primary save-idea-btn icon-only" data-id="${idea.id}" title="Guardar cambios">
+                ${saveIcon}
+              </button>
+            </div>
           </div>
         </div>
       `;

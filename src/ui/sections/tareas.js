@@ -109,7 +109,7 @@ export function renderTareasSection() {
               <div class="item-actions-group">
                 ${tarea.fechaLimite ? `
                   <span class="badge-date">
-                    <svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     ${formatDate(tarea.fechaLimite)}
                   </span>
                 ` : ''}
@@ -118,9 +118,6 @@ export function renderTareasSection() {
                 </button>
               </div>
               <div class="item-actions-group">
-                <button class="btn-icon delete-btn" data-id="${tarea.id}" title="Eliminar tarea">
-                  <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
                 <button class="btn-icon expand-indicator-btn" title="Expandir/Contraer">
                   ${expandIcon}
                 </button>
@@ -130,17 +127,20 @@ export function renderTareasSection() {
  
           <div class="task-edit-fields">
             <div class="task-content-col">
-              <div class="task-row-edit">
-
-                <div class="studio-date-wrapper">
-                  <input type="date" class="studio-date-input" value="${fechaLimiteValue}">
-                </div>
-              </div>
               <div class="task-notes-row">
                 <textarea placeholder="Notas adicionales..."></textarea>
-                <button class="btn-icon btn-icon--primary save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
-                  ${saveIcon}
-                </button>
+                <div class="actions-column">
+                  <div class="btn-icon date-btn-wrapper" title="Establecer fecha límite">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <input type="date" class="studio-date-input" value="${fechaLimiteValue}">
+                  </div>
+                  <button class="btn-icon delete-btn" data-id="${tarea.id}" title="Eliminar tarea">
+                    <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <button class="btn-icon btn-icon--primary save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
+                    ${saveIcon}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
