@@ -7,7 +7,7 @@ const STORAGE_KEYS = {
 };
 
 export const appState = {
-  activeTab: 'compras',
+  activeTab: 'ideas',
   user: null,
   userId: null,
   authLoading: true,

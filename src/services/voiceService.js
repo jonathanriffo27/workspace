@@ -140,16 +140,14 @@ async function processVoiceCapture(text) {
       let notes = typeof item === 'object' ? (item.notes || item.detail || item.description || '') : '';
       if (!title) return null;
 
-      // Para ideas: guardar texto original completo en notes y crear resumen
+      // Para ideas: usar el resumen de la IA como título y guardar texto original en notas
       if (module === 'ideas') {
-        notes = text;
-        const words = title.split(' ').slice(0, 4).join(' ');
-        const summary = words.charAt(0).toUpperCase() + words.slice(1);
+        const finalTitle = typeof item === 'object' && item.title ? item.title : title;
         return { 
           module, 
           subcat: null, 
-          title: summary || 'Nueva idea',
-          notes: notes.trim()
+          title: cleanVoiceText(finalTitle),
+          notes: text.trim() // Siempre guardamos el original completo
         };
       }
 

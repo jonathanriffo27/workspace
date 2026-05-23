@@ -140,7 +140,7 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
         });
 
         const hash = window.location.hash.substring(1);
-        const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'compras';
+        const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'ideas';
         switchTab(initialTab);
 
         initFirestoreSync();
@@ -157,7 +157,7 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
         appState.unsubscribes = [];
 
         const hash = window.location.hash.substring(1);
-        const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'compras';
+        const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'ideas';
         switchTab(initialTab);
       }
     });

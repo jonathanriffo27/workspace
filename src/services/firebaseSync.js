@@ -69,12 +69,7 @@ let unsubTareas = null;
 
 export function initComprasSync() {
   const userId = appState.userId;
-  if (!userId) return;
-
-  if (unsubCompras) {
-    unsubCompras();
-    appState.unsubscribes = appState.unsubscribes.filter(fn => fn !== unsubCompras);
-  }
+  if (!userId || unsubCompras) return; // Ya existe o no hay usuario
 
   const qCompras = query(collections.compras, where("userId", "==", userId), orderBy("creadoEn", "desc"), limit(appState.compras.limit));
   unsubCompras = onSnapshot(qCompras, (snapshot) => {
@@ -94,12 +89,7 @@ export function initComprasSync() {
 
 export function initIdeasSync() {
   const userId = appState.userId;
-  if (!userId) return;
-
-  if (unsubIdeas) {
-    unsubIdeas();
-    appState.unsubscribes = appState.unsubscribes.filter(fn => fn !== unsubIdeas);
-  }
+  if (!userId || unsubIdeas) return;
 
   const qIdeas = query(collections.ideas, where("userId", "==", userId), orderBy("creadoEn", "desc"), limit(appState.ideas.limit));
   unsubIdeas = onSnapshot(qIdeas, (snapshot) => {
@@ -119,12 +109,7 @@ export function initIdeasSync() {
 
 export function initTareasSync() {
   const userId = appState.userId;
-  if (!userId) return;
-
-  if (unsubTareas) {
-    unsubTareas();
-    appState.unsubscribes = appState.unsubscribes.filter(fn => fn !== unsubTareas);
-  }
+  if (!userId || unsubTareas) return;
 
   const qTareas = query(collections.tareas, where("userId", "==", userId), orderBy("creadoEn", "desc"), limit(appState.tareas.limit));
   unsubTareas = onSnapshot(qTareas, (snapshot) => {
@@ -148,9 +133,11 @@ export function loadMoreItems(type) {
     appState[type].limit += 50;
     appState[type].loading = true;
     notify();
-    if (type === 'compras') initComprasSync();
-    else if (type === 'ideas') initIdeasSync();
-    else if (type === 'tareas') initTareasSync();
+    
+    // Forzamos reinicio de la suscripción con el nuevo límite
+    if (type === 'compras' && unsubCompras) { unsubCompras(); unsubCompras = null; initComprasSync(); }
+    else if (type === 'ideas' && unsubIdeas) { unsubIdeas(); unsubIdeas = null; initIdeasSync(); }
+    else if (type === 'tareas' && unsubTareas) { unsubTareas(); unsubTareas = null; initTareasSync(); }
   }
 }
 
@@ -169,7 +156,8 @@ export async function initFirestoreSync() {
 
   await migrateDataIfNecessary(userId);
 
-  initComprasSync();
-  initIdeasSync();
-  initTareasSync();
+  // Inicializar solo la pestaña activa (Lazy loading)
+  if (appState.activeTab === 'compras') initComprasSync();
+  else if (appState.activeTab === 'ideas') initIdeasSync();
+  else if (appState.activeTab === 'tareas') initTareasSync();
 }
