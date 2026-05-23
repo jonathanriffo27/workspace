@@ -59,6 +59,7 @@ export function handleSelectionEnd() {
 
 export function toggleSelection(section, id) {
   const selected = appState[section].selectedItems;
+  const list = document.querySelector(`#${section}-section .items-list`);
   
   if (selected.has(id)) {
     selected.delete(id);
@@ -67,19 +68,35 @@ export function toggleSelection(section, id) {
     selected.add(id);
     document.querySelector(`.item-card[data-id="${id}"]`)?.classList.add('selected');
   }
+
+  // Actualizar clase de modo selección y estado manualmente para evitar re-render completo
+  if (list) {
+    if (selected.size > 0) {
+      list.classList.add('selection-mode-active');
+      appState[section].selectionMode = true;
+    } else {
+      list.classList.remove('selection-mode-active');
+      appState[section].selectionMode = false;
+    }
+  }
   
-  notify();
   renderSelectionBar(section);
 }
 
 export function clearSelection(section) {
   const selected = appState[section].selectedItems;
+  const list = document.querySelector(`#${section}-section .items-list`);
+
   selected.forEach(id => {
     document.querySelector(`.item-card[data-id="${id}"]`)?.classList.remove('selected');
   });
   selected.clear();
   appState[section].selectionMode = false;
-  notify();
+
+  if (list) {
+    list.classList.remove('selection-mode-active');
+  }
+
   hideSelectionBar(section);
 }
 
@@ -194,6 +211,13 @@ export function removeFromSelection(section, id) {
   if (appState[section].selectedItems.has(id)) {
     appState[section].selectedItems.delete(id);
     document.querySelector(`.item-card[data-id="${id}"]`)?.classList.remove('selected');
+    
+    const list = document.querySelector(`#${section}-section .items-list`);
+    if (list && appState[section].selectedItems.size === 0) {
+      list.classList.remove('selection-mode-active');
+      appState[section].selectionMode = false;
+    }
+    
     renderSelectionBar(section);
   }
 }
