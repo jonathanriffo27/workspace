@@ -63,6 +63,7 @@
 - **LG**: 16px
 - **XL**: 24px
 - **XXL**: 32px
+- **Alignment Standard**: List items must align pixel-perfectly with input fields. This is achieved by compensating for the scrollbar gutter (4px) using a combination of negative margins (`margin-right: -8px`) and stable gutters (`scrollbar-gutter: stable`) to maintain a constant width of 100% regardless of scrollbar visibility.
 
 #### Visual Effects
 
@@ -93,7 +94,8 @@
 #### Cards (General)
 - Background: #2A2A2A
 - Border radius: 12px
-- Padding: 16px
+- Padding: 6px 16px
+- **Left Alignment**: Drag handle positioned with 12px left padding for cross-module consistency.
 - Subtle shadow
 - Press state: scale(0.98), darker background
 
@@ -103,6 +105,7 @@
 - Focus: border-color accent, subtle glow
 - Border radius: 12px
 - Padding: 12px 16px
+- **Add Button (+)**: Refined with 18px right padding to ensure optical centering and breathing room against the curved border.
 - Font size: 16px (prevents zoom on mobile)
 
 #### Buttons
@@ -139,6 +142,7 @@
 - **Item Complete**: Strikethrough + fade + checkmark animation
 - **Delete**: Slide out + collapse height
 - **Toast**: Slide up + fade, reverse for dismiss
+- **Voice Preparing**: Localized high-frequency pulse (0.6s) on the microphone button to provide immediate haptic/visual feedback during initialization.
 
 ## 3. Functionality Specification
 
@@ -163,8 +167,12 @@
 
 #### 🎙️ Intelligent Voice Capture (`voiceService.js`)
 - **Trigger**: Long-press (>600ms) on the Microphone icon in the navigation bar.
-- **Processing**: 
+- **Feedback States**:
+  - **Preparing**: Immediate localized pulse on the Ideas button while initialization occurs.
+  - **Recording**: Full-screen glassmorphism overlay with active wave animations.
+- **Processing**:
   - Uses Browser SpeechRecognition API for initial transcript.
+
   - Integration with **OpenRouter API** (`openrouter/free`) for semantic analysis.
   - Smart Categorization: Automatically routes items to Compras, Ideas, or Tareas based on intent.
   - Multi-item support: Can process lists like "comprar pan, leche y huevos" into separate documents.
