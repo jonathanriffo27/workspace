@@ -38,12 +38,22 @@ export function initVoiceCapture() {
     try {
       isLongPress = true;
       try { recognition.stop(); } catch(e) {}
+      
+      // Feedback de carga sutil en el botón
+      ideasNav.classList.add('preparing');
+      
       recognition.start();
-      overlay.classList.add('active');
-      ideasNav.classList.add('recording');
-      transcriptEl.textContent = 'Habla ahora...';
-      if ('vibrate' in navigator) navigator.vibrate(50);
+      
+      recognition.onstart = () => {
+        ideasNav.classList.remove('preparing');
+        ideasNav.classList.add('recording');
+        overlay.classList.add('active');
+        transcriptEl.textContent = 'Habla ahora...';
+        if ('vibrate' in navigator) navigator.vibrate(50);
+      };
+
     } catch (e) {
+      ideasNav.classList.remove('preparing');
       showToast('Error al iniciar micrófono', 'error');
     }
   };
@@ -51,6 +61,7 @@ export function initVoiceCapture() {
   const stopRecording = () => {
     try { recognition.stop(); } catch(e) {}
     overlay.classList.remove('active');
+    ideasNav.classList.remove('preparing');
     ideasNav.classList.remove('recording');
     setTimeout(() => { isLongPress = false; }, 150);
   };
