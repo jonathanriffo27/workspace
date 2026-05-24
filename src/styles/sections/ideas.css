@@ -26,7 +26,7 @@
 }
 
 .item-card.idea .item-actions-group {
-  gap: 0;
+  gap: 5px;
 }
 
 .item-card.idea .btn-icon {
