@@ -1,6 +1,29 @@
 # Workspace Personal
 
+[Live App](https://opencode-36f43.web.app/)
+
 A premium, mobile-first productivity Single Page Application (SPA) designed for personal organization. Built with a focus on simplicity, performance, and a refined dark aesthetic.
+
+## 🧠 Why I Built This
+
+I work in car rentals in Chilean Patagonia — a fast-paced, 
+customer-facing job where ideas, tasks, and mental notes pile 
+up faster than I can process them.
+
+I wasn't looking to build a startup. I just needed a way to 
+capture things before they disappeared: a grocery run, a side 
+project idea, something I had to follow up on at work.
+
+Every app I tried felt like too much. Too many features, too 
+many taps, too much friction for something that should be 
+instant.
+
+So I built this for myself — a single place, designed for my 
+phone, that stays out of the way until I need it.
+
+The voice capture came later, when I realized typing while 
+driving or helping a customer wasn't realistic. Now it's the 
+feature I use most.
 
 ## 📸 Preview
 
@@ -29,7 +52,8 @@ A premium, mobile-first productivity Single Page Application (SPA) designed for 
 - **Typography:** DM Serif Display & DM Sans pairing.
 
 ## ⚡ Performance Optimizations
-... (rest of the section) ...
+- **Vite Build Pipeline:** Pre-configured for fast bundles and optimized assets.
+- **Service Workers:** (Future) Planned for offline-first capabilities.
 
 ## 🛠️ Tech Stack
 
