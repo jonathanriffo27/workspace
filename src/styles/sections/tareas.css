@@ -15,7 +15,7 @@
 /* Task Cards */
 .item-card.task {
   align-items: flex-start;
-  padding: 6px 8px 6px 12px;
+  padding: 6px 16px 6px 12px;
   gap: 12px;
   cursor: pointer;
 }

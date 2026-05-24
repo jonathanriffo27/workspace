@@ -14,3 +14,8 @@
 .stat-item:not(:last-child)::after { content: ""; position: absolute; right: -4px; top: 20%; bottom: 20%; width: 1px; background: var(--border-subtle); }
 .stat-value { font-family: var(--font-mono); font-size: 18px; font-weight: 500; color: var(--text-primary); }
 .stat-label { font-size: 9px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* Compras Item Cards */
+#compras-list .item-card {
+  padding: 6px 16px 6px 12px;
+}

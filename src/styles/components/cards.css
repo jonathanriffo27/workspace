@@ -9,7 +9,7 @@
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
   margin-right: -8px;
-  padding-right: 8px;
+  padding-right: 4px;
 }
 
 .items-list::-webkit-scrollbar {
@@ -33,7 +33,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 12px;
+  padding: 6px 16px;
   background: var(--surface-card);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border-subtle);
