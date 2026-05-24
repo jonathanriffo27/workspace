@@ -50,7 +50,7 @@ function shouldArchiveNow(userId) {
 
 async function runArchiveCycle(userId) {
   if (!userId) return 0;
-  const count = await archiveCompletedTasks();
+  const count = await archiveCompletedTasks(userId);
   localStorage.setItem(getStorageKey(userId), Date.now().toString());
   return count;
 }

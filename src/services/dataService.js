@@ -3,7 +3,10 @@ import {
   updateDoc, 
   deleteDoc, 
   doc,
-  writeBatch
+  writeBatch,
+  query,
+  where,
+  getDocs
 } from "firebase/firestore";
 import { db, collections } from "../firebase.js";
 import { appState } from "../store.js";
@@ -256,26 +259,30 @@ export async function reorderItem(id, type, direction, sortedItems) {
   }
 }
 
-export async function archiveCompletedTasks() {
+export async function archiveCompletedTasks(userId) {
+  if (!userId) return 0;
   try {
-    const completedTasks = appState.tareas.items.filter(
-      t => t.completado === true && t.archivada !== true
+    // Consultamos directamente la base de datos de forma limpia
+    const q = query(
+      collections.tareas,
+      where("userId", "==", userId),
+      where("completado", "==", true),
+      where("archivada", "!=", true)
     );
 
-    if (completedTasks.length === 0) return 0;
-
+    const querySnapshot = await getDocs(q);
+    // Procesamos el lote de forma directa y sencilla
     const batch = writeBatch(db);
-    completedTasks.forEach(task => {
-      const docRef = doc(db, 'tareas', task.id);
+    querySnapshot.docs.forEach(taskDoc => {
+      const docRef = doc(db, 'tareas', taskDoc.id);
       batch.update(docRef, { archivada: true });
     });
 
     await batch.commit();
-    console.log(`[TaskArchiver] ${completedTasks.length} tareas archivadas`);
-    return completedTasks.length;
+    console.log(`[TaskArchiver] ${querySnapshot.docs.length} tareas archivadas`);
+    return querySnapshot.docs.length;
   } catch (err) {
-    console.error('[TaskArchiver] Error archiving tasks:', err);
-    showToast('Error al archivar tareas', 'error');
+    console.error('[TaskArchiver] Error al archivar:', err);
     return 0;
   }
 }
