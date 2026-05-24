@@ -203,7 +203,6 @@ export function updateHeaderForUser(user, options = {}) {
     </button>
     <div class="account-menu" role="menu" hidden>
       <div class="account-menu-header">
-        <span class="account-avatar account-avatar--menu" aria-hidden="true"></span>
         <div class="account-menu-profile">
           <span class="user-name"></span>
           <span class="account-menu-meta"></span>
@@ -216,6 +215,10 @@ export function updateHeaderForUser(user, options = {}) {
         aria-label="Cambiar a tema ${isLightTheme ? 'oscuro' : 'claro'}"
         title="Cambiar a tema ${isLightTheme ? 'oscuro' : 'claro'}"
       >
+        <span class="account-menu-copy">
+          <span class="account-menu-label">Tema:</span>
+          <span class="account-menu-value account-theme-value">${isLightTheme ? 'Claro' : 'Oscuro'}</span>
+        </span>
         <span class="account-menu-icon" aria-hidden="true">
           <svg class="account-menu-theme-icon account-menu-theme-icon--sun" viewBox="0 0 24 24">
             <path d="M12 3v2.25M12 18.75V21M5.636 5.636l1.591 1.591M16.773 16.773l1.591 1.591M3 12h2.25M18.75 12H21M5.636 18.364l1.591-1.591M16.773 7.227l1.591-1.591M15.75 12A3.75 3.75 0 1112 8.25 3.75 3.75 0 0115.75 12z" stroke-linecap="round" stroke-linejoin="round"/>
@@ -224,19 +227,15 @@ export function updateHeaderForUser(user, options = {}) {
             <path d="M21 12.79A9 9 0 1111.21 3c-.02.25-.04.5-.04.75A7.5 7.5 0 0018.67 11.25c.78 0 1.53-.12 2.25-.34.04.62.08 1.25.08 1.88z" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <span class="account-menu-copy">
-          <span class="account-menu-label">Tema</span>
-          <span class="account-menu-value account-theme-value">${isLightTheme ? 'Claro' : 'Oscuro'}</span>
-        </span>
       </button>
       <button class="account-menu-button account-menu-button--danger" type="button" role="menuitem" aria-label="Cerrar sesión">
+        <span class="account-menu-copy">
+          <span class="account-menu-label">Cerrar sesión</span>
+        </span>
         <span class="account-menu-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </span>
-        <span class="account-menu-copy">
-          <span class="account-menu-label">Cerrar sesión</span>
         </span>
       </button>
     </div>
@@ -249,13 +248,11 @@ export function updateHeaderForUser(user, options = {}) {
   const themeButton = userInfo.querySelector('.account-theme-button');
   const logoutButton = userInfo.querySelector('.account-menu-button--danger');
   const triggerAvatar = userInfo.querySelector('.account-trigger .account-avatar');
-  const menuAvatar = userInfo.querySelector('.account-avatar--menu');
   const menuName = userInfo.querySelector('.account-menu-profile .user-name');
   const menuMeta = userInfo.querySelector('.account-menu-meta');
 
   trigger.setAttribute('aria-label', `Abrir menú de cuenta de ${displayName}`);
   if (triggerAvatar) triggerAvatar.textContent = initials;
-  if (menuAvatar) menuAvatar.textContent = initials;
   if (menuName) menuName.textContent = displayName;
   if (menuMeta) menuMeta.textContent = accountMeta;
 

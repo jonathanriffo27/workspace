@@ -34,7 +34,7 @@
   --bg-secondary: #121212;
   --bg-tertiary: #1A1A1A;
   --surface-card: rgba(28, 28, 28, 0.7);
-  --surface-elevated: #1A1A1A;
+  --surface-elevated: rgba(26, 26, 26, 0.98);
   --surface-soft: rgba(255, 255, 255, 0.05);
   --surface-soft-strong: rgba(255, 255, 255, 0.08);
   --glass-bg: rgba(15, 15, 15, 0.8);
@@ -93,7 +93,7 @@
   --bg-secondary: rgba(255, 252, 246, 0.88);
   --bg-tertiary: #EEE7DB;
   --surface-card: rgba(255, 252, 246, 0.78);
-  --surface-elevated: rgba(255, 255, 255, 0.94);
+  --surface-elevated: rgba(244, 238, 228, 0.98);
   --surface-soft: rgba(73, 53, 23, 0.05);
   --surface-soft-strong: rgba(73, 53, 23, 0.09);
   --glass-bg: rgba(246, 242, 234, 0.82);

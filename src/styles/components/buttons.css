@@ -79,20 +79,21 @@
 }
 
 .account-menu-button {
-  min-height: 36px;
+  min-height: 44px;
   min-width: 100%;
   width: auto;
-  padding: 7px 8px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 12px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 14px;
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  text-align: left;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  text-align: right;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .account-menu-button:hover {
@@ -101,21 +102,21 @@
 }
 
 .account-menu-button:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .account-menu-button:hover .account-menu-icon {
-  color: var(--text-primary);
+  color: var(--accent-primary);
 }
 
 .account-menu-button--danger:hover {
-  background: var(--danger-soft);
-  border-color: var(--danger-border);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 .account-menu-button--danger:hover .account-menu-label,
 .account-menu-button--danger:hover .account-menu-icon {
-  color: var(--danger-text-strong);
+  color: #ef4444;
 }
 
 .selection-delete-btn {

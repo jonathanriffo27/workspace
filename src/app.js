@@ -145,7 +145,7 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
 
         initFirestoreSync();
         import("./services/voiceService.js").then(({ initVoiceCapture }) => initVoiceCapture());
-        import("./services/taskArchiver.js").then(({ initTaskArchiver }) => initTaskArchiver());
+        import("./services/taskArchiver.js").then(({ initTaskArchiver }) => initTaskArchiver(user.uid));
       } else {
         showLoginScreen();
         updateHeaderForUser(null);

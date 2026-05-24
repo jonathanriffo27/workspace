@@ -14,41 +14,75 @@ function getMsUntilNextArchive() {
   return target.getTime() - now.getTime();
 }
 
-function shouldArchiveNow() {
-  const now = new Date();
-  const lastArchiveCheck = localStorage.getItem('lastArchiveCheck');
-  
-  if (!lastArchiveCheck) return true;
-
-  const lastCheck = new Date(parseInt(lastArchiveCheck, 10));
-  const hoursSinceLastCheck = (now - lastCheck) / (1000 * 60 * 60);
-
-  return hoursSinceLastCheck >= 12;
+function getStorageKey(userId) {
+  return `lastArchiveCheck_${userId}`;
 }
 
-async function runArchiveCycle() {
+function shouldArchiveNow(userId) {
+  if (!userId) return false;
+  
+  const now = new Date();
+  const storageKey = getStorageKey(userId);
+  const lastArchiveTimestamp = localStorage.getItem(storageKey);
+  
+  if (!lastArchiveTimestamp) return true;
+
+  const lastArchiveDate = new Date(parseInt(lastArchiveTimestamp, 10));
+  
+  // Calculate the start of the current "archive cycle" (the most recent 3 AM)
+  const mostRecentArchiveTime = new Date(now.getTime());
+  mostRecentArchiveTime.setHours(ARCHIVE_HOUR, 0, 0, 0);
+
+  // If it's currently before 3 AM, the most recent archive cycle started at 3 AM YESTERDAY
+  if (now < mostRecentArchiveTime) {
+    mostRecentArchiveTime.setDate(mostRecentArchiveTime.getDate() - 1);
+  }
+
+  // We should archive if the last archive happened before that most recent 3 AM
+  const needsArchive = lastArchiveDate < mostRecentArchiveTime;
+  
+  if (needsArchive) {
+    console.log(`[TaskArchiver] Missed archive window. Last: ${lastArchiveDate.toLocaleString()}, Target was: ${mostRecentArchiveTime.toLocaleString()}`);
+  }
+
+  return needsArchive;
+}
+
+async function runArchiveCycle(userId) {
+  if (!userId) return 0;
   const count = await archiveCompletedTasks();
-  localStorage.setItem('lastArchiveCheck', Date.now().toString());
+  localStorage.setItem(getStorageKey(userId), Date.now().toString());
   return count;
 }
 
-function scheduleNextArchive() {
+let archiveTimeout = null;
+
+function scheduleNextArchive(userId) {
+  if (!userId) return;
+  
+  if (archiveTimeout) clearTimeout(archiveTimeout);
+
   const ms = getMsUntilNextArchive();
   const nextDate = new Date(Date.now() + ms);
-  console.log(`[TaskArchiver] Next archive scheduled: ${nextDate.toLocaleString()}`);
+  console.log(`[TaskArchiver] Next archive scheduled: ${nextDate.toLocaleString()} (Zone: ${Intl.DateTimeFormat().resolvedOptions().timeZone})`);
 
-  setTimeout(async () => {
-    await runArchiveCycle();
-    scheduleNextArchive();
+  archiveTimeout = setTimeout(async () => {
+    await runArchiveCycle(userId);
+    scheduleNextArchive(userId);
   }, ms);
 }
 
-export function initTaskArchiver() {
-  console.log('[TaskArchiver] Initializing task archiver service');
-
-  if (shouldArchiveNow()) {
-    runArchiveCycle();
+export function initTaskArchiver(userId) {
+  if (!userId) {
+    console.warn('[TaskArchiver] Cannot initialize without userId');
+    return;
   }
 
-  scheduleNextArchive();
+  console.log(`[TaskArchiver] Initializing for user ${userId}. System Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+
+  if (shouldArchiveNow(userId)) {
+    runArchiveCycle(userId);
+  }
+
+  scheduleNextArchive(userId);
 }
