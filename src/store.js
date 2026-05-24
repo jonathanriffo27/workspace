@@ -63,6 +63,9 @@ export function notify() {
   subscribers.forEach(callback => callback(appState));
 }
 
+// Expose for debugging and screenshots
+window.notify = notify;
+
 export function initStore() {
   const lastUserId = localStorage.getItem('workspace_last_user_id');
   if (lastUserId) {
@@ -74,6 +77,10 @@ export function initStore() {
     appState.ideas.items = loadFromStorage(STORAGE_KEYS.ideas);
     appState.tareas.items = loadFromStorage(STORAGE_KEYS.tareas);
   }
+  
+  // Expose for debugging and screenshots
+  window.appState = appState;
+  
   notify();
 }
 

@@ -120,21 +120,24 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
     }
 
     onAuthStateChanged(auth, async (user) => {
-      appState.user = user;
-      appState.userId = user ? user.uid : null;
+      const isDebug = new URLSearchParams(window.location.search).has('debug');
+      const activeUser = user || (isDebug ? { uid: 'test-user', displayName: 'Test User', email: 'test@example.com' } : null);
+      
+      appState.user = activeUser;
+      appState.userId = activeUser ? activeUser.uid : null;
       appState.authLoading = false;
 
-      if (user) {
-        localStorage.setItem('workspace_last_user_id', user.uid);
+      if (activeUser) {
+        localStorage.setItem('workspace_last_user_id', activeUser.uid);
 
         const { loadFromStorage } = await import("./utils/storage.js");
         const { STORAGE_KEYS } = await import("./store.js");
-        appState.compras.items = loadFromStorage(`${STORAGE_KEYS.compras}_${user.uid}`);
-        appState.ideas.items = loadFromStorage(`${STORAGE_KEYS.ideas}_${user.uid}`);
-        appState.tareas.items = loadFromStorage(`${STORAGE_KEYS.tareas}_${user.uid}`);
+        appState.compras.items = loadFromStorage(`${STORAGE_KEYS.compras}_${activeUser.uid}`);
+        appState.ideas.items = loadFromStorage(`${STORAGE_KEYS.ideas}_${activeUser.uid}`);
+        appState.tareas.items = loadFromStorage(`${STORAGE_KEYS.tareas}_${activeUser.uid}`);
 
         hideLoginScreen();
-        updateHeaderForUser(user, {
+        updateHeaderForUser(activeUser, {
           getTheme: getCurrentTheme,
           onToggleTheme: toggleTheme
         });
@@ -143,9 +146,15 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
         const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'ideas';
         switchTab(initialTab);
 
-        initFirestoreSync();
+        if (!isDebug) {
+          initFirestoreSync();
+        } else {
+          appState.firestoreInitialized = true;
+          notify();
+        }
+        
         import("./services/voiceService.js").then(({ initVoiceCapture }) => initVoiceCapture());
-        import("./services/taskArchiver.js").then(({ initTaskArchiver }) => initTaskArchiver(user.uid));
+        import("./services/taskArchiver.js").then(({ initTaskArchiver }) => initTaskArchiver(activeUser.uid));
       } else {
         showLoginScreen();
         updateHeaderForUser(null);

@@ -2,7 +2,13 @@
 
 A premium, mobile-first productivity Single Page Application (SPA) designed for personal organization. Built with a focus on simplicity, performance, and a refined dark aesthetic.
 
-![Workspace Personal Preview](src/tareas-screenshot.png)
+## 📸 Preview
+
+<div align="center">
+  <img src="src/tareas.png" width="32%" alt="Tareas Section" />
+  <img src="src/compras.png" width="32%" alt="Compras Section" />
+  <img src="src/ideas.png" width="32%" alt="Ideas Section" />
+</div>
 
 ## 🚀 Overview
 
