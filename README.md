@@ -5,9 +5,9 @@ A premium, mobile-first productivity Single Page Application (SPA) designed for 
 ## 📸 Preview
 
 <div align="center">
-  <img src="src/tareas.png" width="32%" alt="Tareas Section" />
-  <img src="src/compras.png" width="32%" alt="Compras Section" />
-  <img src="src/ideas.png" width="32%" alt="Ideas Section" />
+  <img src="src/tareas.png" width="30%" alt="Tareas Section" />
+  <img src="src/compras.png" width="30%" alt="Compras Section" />
+  <img src="src/ideas.png" width="30%" alt="Ideas Section" />
 </div>
 
 ## 🚀 Overview
