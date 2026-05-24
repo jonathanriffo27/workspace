@@ -14,39 +14,41 @@ A premium, mobile-first productivity Single Page Application (SPA) designed for 
 ## ✨ Key Features
 
 - **Mobile-First Design:** Optimized for mobile browsers with a full-viewport, premium glassmorphism aesthetic.
+- **🎙️ Intelligent Voice Capture:** Long-press the Microphone icon in the navigation bar to capture thoughts. Powered by OpenRouter LLM for smart categorization into Compras, Ideas, or Tareas.
+- **📦 Automated Task Archiving:** Completed tasks are automatically archived daily at 3 AM to keep your workspace clean.
 - **Real-Time Sync:** Powered by Firebase Firestore for seamless multi-device updates.
-- **Secure by Design:** Built-in XSS protection, input validation, and secure credential management.
-- **Reactive State:** Centralized `appState` for instant UI feedback.
+- **Secure by Design:** Built-in XSS protection, input validation (DataService), and secure credential management via Vite environment variables.
+- **Reactive State:** Centralized `appState` for instant UI feedback and optimistic updates.
+- **Advanced UI:** Inline title editing, sortable lists, and multi-select bulk actions.
 - **Typography:** DM Serif Display & DM Sans pairing.
 
 ## ⚡ Performance Optimizations
-
-- **Code Splitting:** Dynamic imports (`import()`) for routing sections (`compras.js`, `ideas.js`, `tareas.js`) and services (`firebaseSync.js`) to reduce initial main bundle size.
-- **Pagination & Cursors:** Implemented chunked data loading (`limit(50)`) coupled with a "Load More" mechanism to avoid overwhelming the DOM and the network on initial load.
-- **Skeleton UI:** Added skeleton shimmer animations during data fetches to improve perceived load times.
-- **Render State Caching:** Used a custom `hasRendered` state per module to eliminate redundant visual animations (like 1-second fade-ins) when switching between previously loaded tabs.
-- **Isolated User Caching:** Persisted layout and partial data locally using user-specific cache keys (`STORAGE_KEYS.type_userId`).
+... (rest of the section) ...
 
 ## 🛠️ Tech Stack
 
 - **Tooling:** [Vite](https://vitejs.dev/)
-- **Core:** Vanilla JavaScript (ES6+), HTML5, CSS3 (Modular)
+- **Core:** Vanilla JavaScript (ES6+), HTML5, CSS3 (Modular ITCSS-like structure)
 - **Backend:** Firebase (Auth & Firestore)
-- **Persistence:** Firestore + local caching.
+- **AI Integration:** OpenRouter (for Voice Capture processing)
+- **Persistence:** Firestore + local caching with user-specific keys.
 
 ## 📦 Project Structure
 
 ```text
 ├── src/
-│   ├── app.js           # App Entry & Auth
-│   ├── store.js         # Reactive State
-│   ├── firebase.js      # Firebase Initialization
-│   ├── services/        # Data & Sync Logic
-│   ├── styles/          # Modular CSS System
-│   └── ui/              # Components & Sections
+│   ├── app.js           # App Entry & Auth Listener
+│   ├── store.js         # Centralized Reactive State
+│   ├── firebase.js      # Firebase SDK Initialization
+│   ├── services/        # Business Logic (Sync, Voice, Archiver)
+│   ├── styles/          # Modular CSS (Variables, Layout, Components)
+│   ├── ui/              # UI Modules & Sections (Tabs, Modals, Toasts)
+│   └── utils/           # Helper functions (Formatting, Storage)
 ├── .env                 # API Keys (Git ignored)
-├── index.html           # Entry point
-└── SPEC.md              # Technical Spec
+├── index.html           # Main Entry point
+├── SPEC.md              # Technical Specification
+├── GEMINI.md            # Agent Context & Standards
+└── AGENTS.md            # Developer Quick Start
 ```
 
 ## ⚙️ Getting Started

@@ -55,7 +55,7 @@
 .nav-item.active { color: var(--accent-primary); }
 .nav-icon { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; transition: transform 0.3s ease, transform 0.3s ease; }
 .nav-item.active .nav-icon { transform: translateY(-2px) scale(1.1); filter: drop-shadow(0 0 8px var(--accent-glow)); }
-.nav-item[data-tab="ideas"] .nav-icon { width: 28px; height: 28px; margin-bottom: 2px; }
+.nav-item[data-tab="ideas"] .nav-icon { width: 25px; height: 25px; margin-bottom: 2px; }
 .nav-item[data-tab="ideas"] .nav-label { margin-top: -2px; }
 .nav-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
 

@@ -152,14 +152,43 @@
     user: FirebaseUser | null,
     userId: string | null,
     authLoading: boolean,
-    compras: { items: [], filter: 'todas' },
-    ideas: { items: [], searchQuery: '' },
-    tareas: { items: [], filter: 'todas' },
+    compras: { items: [], filter: 'todas', multiSelect: [] },
+    ideas: { items: [], searchQuery: '', multiSelect: [] },
+    tareas: { items: [], filter: 'todas', multiSelect: [] },
     ui: { toast: null, modal: null }
   }
   ```
 
+### Advanced Features
+
+#### 🎙️ Intelligent Voice Capture (`voiceService.js`)
+- **Trigger**: Long-press (>600ms) on the Microphone icon in the navigation bar.
+- **Processing**: 
+  - Uses Browser SpeechRecognition API for initial transcript.
+  - Integration with **OpenRouter API** (`openrouter/free`) for semantic analysis.
+  - Smart Categorization: Automatically routes items to Compras, Ideas, or Tareas based on intent.
+  - Multi-item support: Can process lists like "comprar pan, leche y huevos" into separate documents.
+- **Fallback**: Heuristic categorization if API fails or key is missing.
+
+#### 📦 Automated Task Archiver (`taskArchiver.js`)
+- **Schedule**: Runs daily at 3 AM (local time).
+- **Functionality**: Moves documents from active collections to archives based on completion status.
+- **Persistence**: Tracks last archive run in `localStorage` to ensure execution after downtime.
+
+#### Multi-Select & Bulk Actions
+- **State**: Each module maintains a `multiSelect` array in `appState` containing document IDs.
+- **UI**: Checkbox on each card (distinct from completion checkbox) + floating action bar.
+- **Actions**: Bulk delete and bulk archive (where applicable).
+
+#### Positioning & Sorting
+- **Field**: `posicion` (number) in Firestore documents.
+- **Logic**: 
+  - New items are added with a `posicion` smaller than the current minimum (top of list).
+  - Sorting: Documents are ordered by `completado` (false first) and then by `posicion` ascending.
+  - Drag & Drop: Integrated with `sortable.js` to update positions in real-time.
+
 ### Authentication
+... (rest of section) ...
 
 **Features:**
 - Firebase Authentication with two methods:
