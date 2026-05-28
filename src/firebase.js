@@ -47,3 +47,17 @@ export const collections = {
 };
 
 export { db, auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
+
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+
+export async function signInWithGoogle() {
+  if (Capacitor.isNativePlatform()) {
+    const result = await FirebaseAuthentication.signInWithGoogle();
+    const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+    return signInWithCredential(auth, credential);
+  } else {
+    return signInWithPopup(auth, googleProvider);
+  }
+}

@@ -5,6 +5,7 @@ import {
   signOut
 } from "firebase/auth";
 import { auth, googleProvider } from "../firebase.js";
+import { signInWithGoogle } from "../firebase.js";;
 import { appState } from "../store.js";
 import { showToast } from "./components/toast.js";
 
@@ -114,7 +115,7 @@ function attachLoginEvents() {
 
   googleBtn.addEventListener('click', async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithGoogle();
     } catch (err) {
       showToast('Error al iniciar con Google', 'error');
     }
