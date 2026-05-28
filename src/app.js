@@ -95,6 +95,16 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
     }
   }
 
+  async function initOrientationLock() {
+    if (screen.orientation && screen.orientation.lock) {
+      try {
+        await screen.orientation.lock('portrait');
+      } catch (err) {
+        // Silently fail as the CSS overlay handles fallback
+      }
+    }
+  }
+
   subscribe((state) => {
     if (state.authLoading) return;
 
@@ -110,6 +120,7 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
 
   function init() {
     initTheme();
+    initOrientationLock();
     initStore();
     initSwipeNavigation();
 
@@ -150,7 +161,6 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
           initFirestoreSync();
         } else {
           appState.firestoreInitialized = true;
-          notify();
         }
         
         import("./services/voiceService.js").then(({ initVoiceCapture }) => initVoiceCapture());

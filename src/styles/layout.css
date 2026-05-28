@@ -324,3 +324,75 @@
 :root[data-theme="dark"] .account-menu {
   border-color: var(--border-subtle);
 }
+
+/* Orientation Lock Overlay */
+.orientation-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 50% 50%, var(--body-gradient-top) 0%, transparent 70%),
+    radial-gradient(circle at 50% 100%, var(--body-gradient-bottom) 0%, transparent 70%);
+  color: var(--text-primary);
+  z-index: 10000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Show only on small screens in landscape */
+@media (orientation: landscape) and (max-width: 1024px) {
+  .orientation-overlay {
+    display: flex;
+  }
+}
+
+.orientation-content {
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.rotate-phone-icon {
+  width: 80px;
+  height: 80px;
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+  animation: phoneRotate 2.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 15px var(--accent-glow));
+}
+
+.orientation-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.orientation-text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+@keyframes phoneRotate {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(90deg); }
+  75% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
