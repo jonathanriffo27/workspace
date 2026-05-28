@@ -26,13 +26,13 @@ jobs:
       - name: Build web
         run: pnpm build
 
+      - name: Copy web assets to android
+        run: cp -r dist/* android/app/src/main/assets/public/
+
       - uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: temurin
-
-      - name: Sync Capacitor
-        run: ./node_modules/.bin/cap sync android
 
       - name: Build APK
         run: cd android && ./gradlew assembleDebug
