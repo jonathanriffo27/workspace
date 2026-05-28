@@ -15,8 +15,12 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signInWithCredential
 } from "firebase/auth";
+
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 /**
  * REEMPLAZA ESTA CONFIGURACIÓN CON TU PROPIA CONFIGURACIÓN DE FIREBASE
@@ -40,17 +44,6 @@ const db = initializeFirestore(app, {
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-export const collections = {
-  compras: collection(db, "compras"),
-  ideas: collection(db, "ideas"),
-  tareas: collection(db, "tareas")
-};
-
-export { db, auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
-
-import { Capacitor } from '@capacitor/core';
-import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
-import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 
 export async function signInWithGoogle() {
   if (Capacitor.isNativePlatform()) {
@@ -61,3 +54,12 @@ export async function signInWithGoogle() {
     return signInWithPopup(auth, googleProvider);
   }
 }
+
+export const collections = {
+  compras: collection(db, "compras"),
+  ideas: collection(db, "ideas"),
+  tareas: collection(db, "tareas")
+};
+
+export { db, auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
+
