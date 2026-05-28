@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0F0F0F" />
+    <meta name="description" content="Workspace Personal - Tu espacio de productividad" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230F0F0F'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='%23F59E0B'%3EW%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+    <script>
+      (function () {
+        var storageKey = 'workspace_theme';
+        var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        var storedTheme = null;
+
+        try {
+          storedTheme = window.localStorage.getItem(storageKey);
+        } catch (error) {
+          storedTheme = null;
+        }
+
+        var theme = storedTheme === 'light' || storedTheme === 'dark'
+          ? storedTheme
+          : (prefersLight ? 'light' : 'dark');
+
+        document.documentElement.dataset.theme = theme;
+
+        var metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+          metaThemeColor.setAttribute('content', theme === 'light' ? '#F6F2EA' : '#0F0F0F');
+        }
+      })();
+    </script>
+    <title>Workspace Personal</title>
+    <script type="module" crossorigin src="/assets/index-_vlJnSic.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/firebase-B-Hb1UJx.js">
+    <link rel="modulepreload" crossorigin href="/assets/storage-BPwMTOLr.js">
+    <link rel="modulepreload" crossorigin href="/assets/store-DAJlnE11.js">
+    <link rel="modulepreload" crossorigin href="/assets/dataService-nYGYHlVC.js">
+    <link rel="modulepreload" crossorigin href="/assets/preload-helper-Cl5is51P.js">
+    <link rel="modulepreload" crossorigin href="/assets/firebaseSync-trd3jO0R.js">
+    <link rel="modulepreload" crossorigin href="/assets/compras-lZQBFzdF.js">
+    <link rel="modulepreload" crossorigin href="/assets/ideas-D44mkiAE.js">
+    <link rel="modulepreload" crossorigin href="/assets/tareas-CBllDLy5.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-kshRgEXO.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <div class="header-brand">
+          <h1 class="header-title">Workspace</h1>
+          <span class="header-subtitle">Personal</span>
+        </div>
+        <div class="header-actions"></div>
+      </header>
+
+      <main class="content">
+        <section id="compras-section" class="section active">
+          <div class="stats-bar">
+            <div class="skeleton-stat"></div>
+            <div class="skeleton-stat"></div>
+            <div class="skeleton-stat"></div>
+          </div>
+          <div class="input-wrapper">
+            <div class="skeleton-input"></div>
+          </div>
+          <div class="items-list">
+            <div class="item-card skeleton-card">
+              <div class="skeleton-checkbox"></div>
+              <div class="skeleton-content">
+                <div class="skeleton-text"></div>
+                <div class="skeleton-badge"></div>
+              </div>
+            </div>
+            <div class="item-card skeleton-card">
+              <div class="skeleton-checkbox"></div>
+              <div class="skeleton-content">
+                <div class="skeleton-text"></div>
+                <div class="skeleton-badge"></div>
+              </div>
+            </div>
+            <div class="item-card skeleton-card">
+              <div class="skeleton-checkbox"></div>
+              <div class="skeleton-content">
+                <div class="skeleton-text"></div>
+                <div class="skeleton-badge"></div>
+              </div>
+            </div>
+            <div class="item-card skeleton-card">
+              <div class="skeleton-checkbox"></div>
+              <div class="skeleton-content">
+                <div class="skeleton-text"></div>
+                <div class="skeleton-badge"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="ideas-section" class="section"></section>
+        <section id="tareas-section" class="section"></section>
+      </main>
+
+      <nav class="bottom-nav">
+        <button class="nav-item active" data-tab="compras">
+          <svg class="nav-icon" viewBox="0 0 24 24">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Compras</span>
+        </button>
+        <button class="nav-item" data-tab="ideas">
+          <svg class="nav-icon" viewBox="0 0 24 24">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="19" x2="12" y2="23" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="8" y1="23" x2="16" y2="23" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Ideas</span>
+        </button>
+        <button class="nav-item" data-tab="tareas">
+          <svg class="nav-icon" viewBox="0 0 24 24">
+            <path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Tareas</span>
+        </button>
+      </nav>
+
+      <div class="toast-container" id="toast-container"></div>
+
+      <div id="voice-overlay" class="voice-overlay">
+        <div class="pixel-glow"></div>
+        <div class="voice-content">
+          <div class="voice-status">Escuchando...</div>
+          <div class="voice-transcript" id="voice-transcript">Habla ahora...</div>
+          <div class="voice-waves">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="orientation-overlay" class="orientation-overlay">
+        <div class="orientation-content">
+          <div class="rotate-phone-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+          </div>
+          <h2 class="orientation-title">Modo Vertical Requerido</h2>
+          <p class="orientation-text">Por favor, gira tu dispositivo para continuar usando Workspace.</p>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
