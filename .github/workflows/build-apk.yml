@@ -32,7 +32,7 @@ jobs:
           distribution: temurin
 
       - name: Sync Capacitor
-        run: pnpm exec cap sync android
+        run: ./node_modules/.bin/cap sync android
 
       - name: Build APK
         run: cd android && ./gradlew assembleDebug
