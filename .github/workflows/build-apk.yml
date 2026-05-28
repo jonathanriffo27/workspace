@@ -27,7 +27,7 @@ jobs:
         run: pnpm build
 
       - name: Copy web assets to android
-        run: cp -r dist/* android/app/src/main/assets/public/
+        run: mkdir -p android/app/src/main/assets/public && cp -r dist/* android/app/src/main/assets/public/
 
       - uses: actions/setup-java@v4
         with:
