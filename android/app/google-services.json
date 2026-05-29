@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "398357215786-bdajbt496vsbdeqghuh0kjfatnq0s9m7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jonathanriffo.workspace",
+            "certificate_hash": "28bd0fdf0dba8a927e732de211494c8737e36d76"
+          }
+        },
+        {
           "client_id": "398357215786-bht3nohl1pj8pi2ib8qde3it8omhp0l3.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

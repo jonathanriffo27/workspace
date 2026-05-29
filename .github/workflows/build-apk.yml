@@ -25,6 +25,11 @@ jobs:
 
       - name: Build web
         run: pnpm build
+ 
+      - name: Restore debug keystore
+        run: |
+          mkdir -p /home/runner/.config/.android
+          echo "${{ secrets.DEBUG_KEYSTORE }}" | base64 -d > /home/runner/.config/.android/debug.keystore
 
       - uses: actions/setup-java@v4
         with:
