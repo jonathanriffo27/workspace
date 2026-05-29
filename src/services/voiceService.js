@@ -1,116 +1,137 @@
 import { 
   addDoc, 
   serverTimestamp 
-} from "firebase/firestore";
-import { collections } from "../firebase.js";
-import { appState } from "../store.js";
-import { showToast } from "../ui/components/toast.js";
-import { switchTab } from "../ui/navigation.js";
+} from \"firebase/firestore\";
+import { collections } from \"../firebase.js\";
+import { appState } from \"../store.js\";
+import { showToast } from \"../ui/components/toast.js\";
+import { switchTab } from \"../ui/navigation.js\";
 import { 
   cleanVoiceText, 
   splitIntoItems,
   hasMultipleItems
-} from "../utils/formatting.js";
+} from \"../utils/formatting.js\";
+import { SpeechRecognition } from '@capacitor-community/speech-recognition';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
-let recognition = null;
+let isRecording = false;
 let voiceTimer = null;
-let isLongPress = false;
 let processingToast = null;
 const LONG_PRESS_DURATION = 600;
 const TIMEOUT_MS = 25000;
 
-export function initVoiceCapture() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) return;
-
-  recognition = new SpeechRecognition();
-  recognition.lang = 'es-ES';
-  recognition.continuous = true;
-  recognition.interimResults = true;
+export async function initVoiceCapture() {
+  const isAvailable = await SpeechRecognition.available();
+  if (!isAvailable) {
+    console.warn('Speech Recognition not available on this device');
+    return;
+  }
 
   const overlay = document.getElementById('voice-overlay');
   const transcriptEl = document.getElementById('voice-transcript');
-  const ideasNav = document.querySelector('.nav-item[data-tab="ideas"]');
+  const ideasNav = document.querySelector('.nav-item[data-tab=\"ideas\"]');
 
   if (!ideasNav) return;
 
-  const startRecording = () => {
+  const startRecording = async () => {
     try {
-      isLongPress = true;
-      try { recognition.stop(); } catch(e) {}
-      
-      // Feedback de carga sutil en el botón
+      const { display } = await SpeechRecognition.checkPermissions();
+      if (display !== 'granted') {
+        const { display: newDisplay } = await SpeechRecognition.requestPermissions();
+        if (newDisplay !== 'granted') {
+          showToast('Permiso de micrófono denegado', 'error');
+          return;
+        }
+      }
+
+      isRecording = true;
       ideasNav.classList.add('preparing');
       
-      recognition.start();
+      await SpeechRecognition.start({
+        language: 'es-ES',
+        maxResults: 1,
+        prompt: 'Habla ahora...',
+        partialResults: true,
+        popup: false
+      });
       
-      recognition.onstart = () => {
-        ideasNav.classList.remove('preparing');
-        ideasNav.classList.add('recording');
-        overlay.classList.add('active');
-        transcriptEl.textContent = 'Habla ahora...';
-        if ('vibrate' in navigator) navigator.vibrate(50);
-      };
+      ideasNav.classList.remove('preparing');
+      ideasNav.classList.add('recording');
+      overlay.classList.add('active');
+      transcriptEl.textContent = 'Habla ahora...';
+      
+      await Haptics.impact({ style: ImpactStyle.Medium });
+
+      SpeechRecognition.addListener('partialResults', (data) => {
+        if (data.matches && data.matches.length > 0) {
+          transcriptEl.textContent = data.matches[0];
+          transcriptEl.dataset.hasContent = 'true';
+        }
+      });
 
     } catch (e) {
+      console.error('Error starting voice capture:', e);
+      isRecording = false;
       ideasNav.classList.remove('preparing');
       showToast('Error al iniciar micrófono', 'error');
     }
   };
 
-  const stopRecording = () => {
-    try { recognition.stop(); } catch(e) {}
-    overlay.classList.remove('active');
-    ideasNav.classList.remove('preparing');
-    ideasNav.classList.remove('recording');
-    setTimeout(() => { isLongPress = false; }, 150);
-  };
+  const stopRecording = async () => {
+    if (!isRecording) return;
+    
+    try {
+      await SpeechRecognition.stop();
+      isRecording = false;
+      
+      const text = transcriptEl.dataset.hasContent === 'true' ? transcriptEl.textContent.trim() : '';
+      
+      overlay.classList.remove('active');
+      ideasNav.classList.remove('preparing');
+      ideasNav.classList.remove('recording');
+      delete transcriptEl.dataset.hasContent;
 
-  recognition.onresult = (event) => {
-    let interimTranscript = '';
-    let finalTranscript = '';
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
-      else interimTranscript += event.results[i][0].transcript;
-    }
-    const resultText = finalTranscript || interimTranscript;
-    if (resultText) {
-      transcriptEl.textContent = resultText;
-      transcriptEl.dataset.hasContent = 'true';
-    }
-  };
+      await Haptics.impact({ style: ImpactStyle.Light });
 
-  recognition.onend = () => {
-    const text = transcriptEl.dataset.hasContent === 'true' ? transcriptEl.textContent.trim() : '';
-    overlay.classList.remove('active');
-    ideasNav.classList.remove('recording');
-    delete transcriptEl.dataset.hasContent;
-
-    if (text && text.length > 1) {
-      const container = document.getElementById('toast-container');
-      if (container) {
-        processingToast = document.createElement('div');
-        processingToast.className = 'toast info processing';
-        processingToast.innerHTML = `
-          <span class="toast-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" stroke-linecap="round">
-              <circle cx="12" cy="12" r="9" stroke-opacity="0.25"/>
-              <path d="M12 3a9 9 0 0 1 9 9" stroke-dasharray="40 100"/>
-            </svg>
-          </span>
-          <span class="toast-message">Procesando audio...</span>
-        `;
-        container.appendChild(processingToast);
+      if (text && text.length > 1) {
+        handleFinalText(text);
       }
-      processVoiceCapture(text);
+    } catch (e) {
+      console.error('Error stopping voice capture:', e);
+      overlay.classList.remove('active');
+      ideasNav.classList.remove('recording');
     }
   };
 
-  ideasNav.addEventListener('mousedown', () => { voiceTimer = setTimeout(startRecording, LONG_PRESS_DURATION); });
-  ideasNav.addEventListener('touchstart', () => { voiceTimer = setTimeout(startRecording, LONG_PRESS_DURATION); }, { passive: true });
-  window.addEventListener('mouseup', () => { clearTimeout(voiceTimer); if (ideasNav.classList.contains('recording')) stopRecording(); });
-  window.addEventListener('touchend', () => { clearTimeout(voiceTimer); if (ideasNav.classList.contains('recording')) stopRecording(); });
+  function handleFinalText(text) {
+    const container = document.getElementById('toast-container');
+    if (container) {
+      processingToast = document.createElement('div');
+      processingToast.className = 'toast info processing';
+      processingToast.innerHTML = `
+        <span class=\"toast-icon\">
+          <svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"var(--accent-primary)\" stroke-width=\"2.5\" stroke-linecap=\"round\">
+            <circle cx=\"12\" cy=\"12\" r=\"9\" stroke-opacity=\"0.25\"/>
+            <path d=\"M12 3a9 9 0 0 1 9 9\" stroke-dasharray=\"40 100\"/>
+          </svg>
+        </span>
+        <span class=\"toast-message\">Procesando audio...</span>
+      `;
+      container.appendChild(processingToast);
+    }
+    processVoiceCapture(text);
+  }
+
+  ideasNav.addEventListener('touchstart', (e) => { 
+    voiceTimer = setTimeout(startRecording, LONG_PRESS_DURATION); 
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => { 
+    clearTimeout(voiceTimer); 
+    if (isRecording) stopRecording(); 
+  });
 }
+
 
 async function processVoiceCapture(text) {
   const timeoutId = setTimeout(() => {

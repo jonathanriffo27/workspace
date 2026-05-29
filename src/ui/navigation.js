@@ -47,6 +47,27 @@ export function switchTab(tab) {
   });
 }
 
+export function initTabs() {
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      const tab = item.dataset.tab;
+      if (tab) switchTab(tab);
+    });
+    
+    // Disable double-tap zoom for better responsiveness on mobile
+    item.style.touchAction = 'manipulation';
+  });
+
+  // Set initial active tab from hash or default
+  const hash = window.location.hash.replace('#', '');
+  if (TABS.includes(hash)) {
+    switchTab(hash);
+  } else {
+    switchTab('compras');
+  }
+}
+
 export function initSwipeNavigation() {
   let touchStartX = 0;
   let touchStartY = 0;

@@ -4,15 +4,13 @@ import { appState, initStore, subscribe } from "./store.js";
 import { initFirestoreSync } from "./services/firebaseSync.js";
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
-import {
-  showLoginScreen,
-  hideLoginScreen,
-  updateHeaderForUser
-} from "./ui/auth.js";
-import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
+import { Keyboard } from '@capacitor/keyboard';
 
 (function() {
+
   'use strict';
+  
+  // ... (rest of the preamble)
 
   const THEME_STORAGE_KEY = 'workspace_theme';
   const THEME_COLORS = {
@@ -117,10 +115,18 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
     }
   }
 
+  function initKeyboard() {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.setAccessoryBarVisible({ isVisible: true });
+    }
+  }
+
   function initializeApp() {
     initTheme();
     initOrientationLock();
+    initKeyboard();
     initStore();
+    initTabs();
     initSwipeNavigation();
 
     onAuthStateChanged(auth, (user) => {
