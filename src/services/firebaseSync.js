@@ -142,22 +142,24 @@ export function loadMoreItems(type) {
 }
 
 export async function initFirestoreSync() {
-  if (!appState.userId) return;
-
-  if (appState.firestoreInitialized) return;
-  appState.firestoreInitialized = true;
-
   const userId = appState.userId;
-  appState.unsubscribes.forEach(fn => fn());
+  if (!userId) return;
+
+  // Limpiar estados anteriores para evitar duplicados si se llama re-inicialización
+  appState.unsubscribes.forEach(fn => {
+    try { fn(); } catch (e) {}
+  });
   appState.unsubscribes = [];
   unsubCompras = null;
   unsubIdeas = null;
   unsubTareas = null;
 
+  appState.firestoreInitialized = true;
+
   await migrateDataIfNecessary(userId);
 
-  // Inicializar solo la pestaña activa (Lazy loading)
-  if (appState.activeTab === 'compras') initComprasSync();
-  else if (appState.activeTab === 'ideas') initIdeasSync();
-  else if (appState.activeTab === 'tareas') initTareasSync();
+  // Inicializar todas las suscripciones para que los contadores y datos estén listos
+  initComprasSync();
+  initIdeasSync();
+  initTareasSync();
 }

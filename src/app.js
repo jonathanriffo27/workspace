@@ -126,14 +126,17 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
     onAuthStateChanged(auth, (user) => {
       if (user) {
         appState.user = user;
+        appState.userId = user.uid;
         if (!appState.firestoreInitialized) {
-          initFirestoreSync(user.uid);
+          initFirestoreSync();
           appState.firestoreInitialized = true;
         }
         hideLoginScreen();
         updateHeaderForUser(user, { getTheme: getCurrentTheme, toggleTheme });
       } else {
         appState.user = null;
+        appState.userId = null;
+        appState.firestoreInitialized = false;
         showLoginScreen();
         updateHeaderForUser(null);
       }
