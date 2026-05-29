@@ -1,4 +1,3 @@
-
 {
   "project_info": {
     "project_number": "398357215786",
@@ -24,11 +23,27 @@
           }
         },
         {
+          "client_id": "398357215786-e6ilo90e9hp4s1vsfse944lr1ebapcgm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jonathanriffo.workspace",
+            "certificate_hash": "4b424776f160ccc32b28fd0697653a62d492712b"
+          }
+        },
+        {
           "client_id": "398357215786-hsqdvlf8q27ugrbjom4vjaq6b8qrqfhs.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.jonathanriffo.workspace",
             "certificate_hash": "b27445d8e8f4d44842daefddc1c7b571e8305688"
+          }
+        },
+        {
+          "client_id": "398357215786-mmcujgn7gobg0d30ds5gvfao3a1p4n4o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jonathanriffo.workspace",
+            "certificate_hash": "5899253bd3da5ff2201611d3508ea90413eb6987"
           }
         },
         {
@@ -55,4 +70,3 @@
   ],
   "configuration_version": "1"
 }
-
