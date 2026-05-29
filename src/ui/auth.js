@@ -1,11 +1,9 @@
 import {
-  signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut
 } from "firebase/auth";
-import { auth, googleProvider } from "../firebase.js";
-import { signInWithGoogle } from "../firebase.js";;
+import { auth, signInWithGoogle } from "../firebase.js";
 import { appState } from "../store.js";
 import { showToast } from "./components/toast.js";
 

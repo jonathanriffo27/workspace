@@ -48,7 +48,13 @@ const googleProvider = new GoogleAuthProvider();
 export async function signInWithGoogle() {
   if (Capacitor.isNativePlatform()) {
     const result = await FirebaseAuthentication.signInWithGoogle();
-    const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+    if (!result.credential) {
+      throw new Error("No se recibió credencial de Google");
+    }
+    const credential = GoogleAuthProvider.credential(
+      result.credential.idToken,
+      result.credential.accessToken
+    );
     return signInWithCredential(auth, credential);
   } else {
     return signInWithPopup(auth, googleProvider);
@@ -62,4 +68,3 @@ export const collections = {
 };
 
 export { db, auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
-
