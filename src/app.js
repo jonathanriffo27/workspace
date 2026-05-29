@@ -2,6 +2,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase.js";
 import { appState, initStore, subscribe } from "./store.js";
 import { initFirestoreSync } from "./services/firebaseSync.js";
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import {
   showLoginScreen,
   hideLoginScreen,
@@ -55,11 +57,21 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
     themeValue.textContent = currentThemeLabel;
   }
 
-  function applyTheme(theme, { persist = false } = {}) {
+  async function applyTheme(theme, { persist = false } = {}) {
     document.documentElement.dataset.theme = theme;
     updateThemeMeta(theme);
     updateThemeUI(theme);
     window.dispatchEvent(new CustomEvent('workspace-themechange', { detail: { theme } }));
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await StatusBar.setStyle({
+          style: theme === 'light' ? Style.Light : Style.Dark
+        });
+      } catch (error) {
+        console.error('Error setting status bar style:', error);
+      }
+    }
 
     if (persist) {
       try {
@@ -105,107 +117,34 @@ import { switchTab, initSwipeNavigation } from "./ui/navigation.js";
     }
   }
 
-  subscribe((state) => {
-    if (state.authLoading) return;
-
-    const currentTab = state.activeTab;
-    if (currentTab === 'compras') {
-      import("./ui/sections/compras.js").then(({ renderComprasSection }) => renderComprasSection());
-    } else if (currentTab === 'ideas') {
-      import("./ui/sections/ideas.js").then(({ renderIdeasSection }) => renderIdeasSection());
-    } else if (currentTab === 'tareas') {
-      import("./ui/sections/tareas.js").then(({ renderTareasSection }) => renderTareasSection());
-    }
-  });
-
-  function init() {
+  function initializeApp() {
     initTheme();
     initOrientationLock();
     initStore();
     initSwipeNavigation();
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (!event.data || !event.data.type) return;
-      });
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-      const isDebug = new URLSearchParams(window.location.search).has('debug');
-      const activeUser = user || (isDebug ? { uid: 'test-user', displayName: 'Test User', email: 'test@example.com' } : null);
-      
-      appState.user = activeUser;
-      appState.userId = activeUser ? activeUser.uid : null;
-      appState.authLoading = false;
-
-      if (activeUser) {
-        localStorage.setItem('workspace_last_user_id', activeUser.uid);
-
-        const { loadFromStorage } = await import("./utils/storage.js");
-        const { STORAGE_KEYS } = await import("./store.js");
-        appState.compras.items = loadFromStorage(`${STORAGE_KEYS.compras}_${activeUser.uid}`);
-        appState.ideas.items = loadFromStorage(`${STORAGE_KEYS.ideas}_${activeUser.uid}`);
-        appState.tareas.items = loadFromStorage(`${STORAGE_KEYS.tareas}_${activeUser.uid}`);
-
-        hideLoginScreen();
-        updateHeaderForUser(activeUser, {
-          getTheme: getCurrentTheme,
-          onToggleTheme: toggleTheme
-        });
-
-        const hash = window.location.hash.substring(1);
-        const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'ideas';
-        switchTab(initialTab);
-
-        if (!isDebug) {
-          initFirestoreSync();
-        } else {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        appState.user = user;
+        if (!appState.firestoreInitialized) {
+          initFirestoreSync(user.uid);
           appState.firestoreInitialized = true;
         }
-        
-        import("./services/voiceService.js").then(({ initVoiceCapture }) => initVoiceCapture());
-        import("./services/taskArchiver.js").then(({ initTaskArchiver }) => initTaskArchiver(activeUser.uid));
+        hideLoginScreen();
+        updateHeaderForUser(user, { getTheme: getCurrentTheme, toggleTheme });
       } else {
+        appState.user = null;
         showLoginScreen();
         updateHeaderForUser(null);
-        appState.compras.items = [];
-        appState.ideas.items = [];
-        appState.tareas.items = [];
-        appState.firestoreInitialized = false;
-        appState.unsubscribes.forEach(fn => fn());
-        appState.unsubscribes = [];
-
-        const hash = window.location.hash.substring(1);
-        const initialTab = ['compras', 'ideas', 'tareas'].includes(hash) ? hash : 'ideas';
-        switchTab(initialTab);
       }
     });
 
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', () => {
-        if (item.classList.contains('recording')) return;
-        switchTab(item.dataset.tab);
-      });
-    });
+    window.addEventListener('toggle-theme', toggleTheme);
   }
 
-  window.addEventListener('unhandledrejection', (event) => {
-    const msg = event.reason?.message || '';
-    if (msg.includes('message channel closed') || msg.includes('Channel closed')) {
-      event.preventDefault();
-    }
-  });
-
-  window.addEventListener('error', (event) => {
-    const msg = event.message || '';
-    if (msg.includes('message channel closed') || msg.includes('Channel closed')) {
-      event.preventDefault();
-    }
-  });
-
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', initializeApp);
   } else {
-    init();
+    initializeApp();
   }
 })();

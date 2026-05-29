@@ -13,6 +13,7 @@
   top: 0;
   z-index: 100;
   padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -302,6 +303,7 @@
 
 :root[data-theme="dark"] .header {
   padding: 16px 24px 12px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
 }
 
 :root[data-theme="dark"] .header-subtitle {
