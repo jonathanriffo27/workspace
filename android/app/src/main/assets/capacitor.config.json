@@ -1,5 +1,12 @@
 {
 	"appId": "com.jonathanriffo.workspace",
 	"appName": "Workspace",
-	"webDir": "dist"
+	"webDir": "dist",
+	"plugins": {
+		"FirebaseAuthentication": {
+			"providers": [
+				"google.com"
+			]
+		}
+	}
 }

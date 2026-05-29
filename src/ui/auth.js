@@ -115,7 +115,8 @@ function attachLoginEvents() {
     try {
       await signInWithGoogle();
     } catch (err) {
-      showToast('Error al iniciar con Google', 'error');
+      console.error('Google sign-in error:', err);
+      showToast(err.message || 'Error al iniciar con Google', 'error');
     }
   });
 }
