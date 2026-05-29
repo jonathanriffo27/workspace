@@ -47,7 +47,9 @@ const googleProvider = new GoogleAuthProvider();
 
 export async function signInWithGoogle() {
   if (Capacitor.isNativePlatform()) {
-    const result = await FirebaseAuthentication.signInWithGoogle();
+    const result = await FirebaseAuthentication.signInWithGoogle({
+      useCredentialManager: false
+    });
     if (!result.credential) {
       throw new Error("No se recibió credencial de Google");
     }
