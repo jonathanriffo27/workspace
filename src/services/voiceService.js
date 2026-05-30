@@ -1,16 +1,16 @@
 import { 
   addDoc, 
   serverTimestamp 
-} from \"firebase/firestore\";
-import { collections } from \"../firebase.js\";
-import { appState } from \"../store.js\";
-import { showToast } from \"../ui/components/toast.js\";
-import { switchTab } from \"../ui/navigation.js\";
+} from "firebase/firestore";
+import { collections } from "../firebase.js";
+import { appState } from "../store.js";
+import { showToast } from "../ui/components/toast.js";
+import { switchTab } from "../ui/navigation.js";
 import { 
   cleanVoiceText, 
   splitIntoItems,
   hasMultipleItems
-} from \"../utils/formatting.js\";
+} from "../utils/formatting.js";
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
@@ -29,7 +29,7 @@ export async function initVoiceCapture() {
 
   const overlay = document.getElementById('voice-overlay');
   const transcriptEl = document.getElementById('voice-transcript');
-  const ideasNav = document.querySelector('.nav-item[data-tab=\"ideas\"]');
+  const ideasNav = document.querySelector('.nav-item[data-tab="ideas"]');
 
   if (!ideasNav) return;
 
@@ -109,13 +109,13 @@ export async function initVoiceCapture() {
       processingToast = document.createElement('div');
       processingToast.className = 'toast info processing';
       processingToast.innerHTML = `
-        <span class=\"toast-icon\">
-          <svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"var(--accent-primary)\" stroke-width=\"2.5\" stroke-linecap=\"round\">
-            <circle cx=\"12\" cy=\"12\" r=\"9\" stroke-opacity=\"0.25\"/>
-            <path d=\"M12 3a9 9 0 0 1 9 9\" stroke-dasharray=\"40 100\"/>
+        <span class="toast-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" stroke-opacity="0.25"/>
+            <path d="M12 3a9 9 0 0 1 9 9" stroke-dasharray="40 100"/>
           </svg>
         </span>
-        <span class=\"toast-message\">Procesando audio...</span>
+        <span class="toast-message">Procesando audio...</span>
       `;
       container.appendChild(processingToast);
     }

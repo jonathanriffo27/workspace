@@ -11,6 +11,7 @@ import {
   updateHeaderForUser
 } from "./ui/auth.js";
 import { initTabs, initSwipeNavigation } from "./ui/navigation.js";
+import { initVoiceCapture } from "./services/voiceService.js";
 
 (function() {
   'use strict';
@@ -128,6 +129,7 @@ import { initTabs, initSwipeNavigation } from "./ui/navigation.js";
     initTheme();
     initOrientationLock();
     initKeyboard();
+    initVoiceCapture();
     initStore();
     initTabs();
     initSwipeNavigation();
@@ -141,7 +143,7 @@ import { initTabs, initSwipeNavigation } from "./ui/navigation.js";
           appState.firestoreInitialized = true;
         }
         hideLoginScreen();
-        updateHeaderForUser(user, { getTheme: getCurrentTheme, toggleTheme });
+        updateHeaderForUser(user, { getTheme: getCurrentTheme, onToggleTheme: toggleTheme });
       } else {
         appState.user = null;
         appState.userId = null;
