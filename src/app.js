@@ -5,12 +5,15 @@ import { initFirestoreSync } from "./services/firebaseSync.js";
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
+import {
+  showLoginScreen,
+  hideLoginScreen,
+  updateHeaderForUser
+} from "./ui/auth.js";
+import { initTabs, initSwipeNavigation } from "./ui/navigation.js";
 
 (function() {
-
   'use strict';
-  
-  // ... (rest of the preamble)
 
   const THEME_STORAGE_KEY = 'workspace_theme';
   const THEME_COLORS = {
