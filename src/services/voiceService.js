@@ -35,10 +35,10 @@ export async function initVoiceCapture() {
 
   const startRecording = async () => {
     try {
-      const { display } = await SpeechRecognition.checkPermissions();
-      if (display !== 'granted') {
-        const { display: newDisplay } = await SpeechRecognition.requestPermissions();
-        if (newDisplay !== 'granted') {
+      const permissions = await SpeechRecognition.checkPermissions();
+      if (permissions.speechRecognition !== 'granted') {
+        const newPermissions = await SpeechRecognition.requestPermissions();
+        if (newPermissions.speechRecognition !== 'granted') {
           showToast('Permiso de micrófono denegado', 'error');
           return;
         }
