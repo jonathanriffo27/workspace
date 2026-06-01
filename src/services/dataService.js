@@ -79,9 +79,53 @@ export async function updateTaskMeta(id, data) {
 }
 
 export async function toggleCompleted(id, type, currentStatus) {
+  const isCompleted = currentStatus === true || currentStatus === 'true';
+  const nextVal = !isCompleted;
+
+  // 1. Actualización Optimista en el DOM
+  const card = document.querySelector(`.item-card[data-id="${id}"]`);
+  const checkbox = card?.querySelector('.checkbox');
+  if (card && checkbox) {
+    if (type === 'ideas') {
+      card.classList.toggle('completed', nextVal);
+      checkbox.classList.toggle('checked', nextVal);
+    } else if (type === 'tareas') {
+      if (isCompleted) {
+        // Al desmarcar tarea completada (volver a pendiente)
+        card.classList.remove('completed');
+        checkbox.classList.remove('checked');
+      } else {
+        // Al marcar tarea como completada
+        card.classList.add('completed');
+        checkbox.classList.add('checked');
+      }
+    } else if (type === 'compras') {
+      card.classList.toggle('completed', nextVal);
+      checkbox.classList.toggle('checked', nextVal);
+    }
+  }
+
+  // 2. Actualización Optimista en el Store
+  const itemIndex = appState[type].items.findIndex(i => i.id === id);
+  let oldItem = null;
+  if (itemIndex !== -1) {
+    oldItem = { ...appState[type].items[itemIndex] };
+    const field = type === 'ideas' ? 'archivada' : 'completado';
+    appState[type].items[itemIndex][field] = nextVal;
+
+    if (type === 'tareas' && isCompleted) {
+      appState[type].items[itemIndex].archivada = false;
+    }
+    // Omitimos re-render completo para no perder focos o animaciones bruscas
+    // pero notificamos cambios de contadores de la stats-bar
+    appState[type].hasRendered = true; // Evitar animaciones de entrada repetidas
+  }
+
+  // Actualizar stats-bar locales inmediatamente sin re-renderizar la lista
+  updateStatsBar(type);
+
   try {
     const docRef = doc(db, type, id);
-    const isCompleted = currentStatus === true || currentStatus === 'true';
     
     if (type === 'tareas' && isCompleted) {
       const pendingItems = appState.tareas.items.filter(i => !i.completado && !i.archivada);
@@ -89,14 +133,20 @@ export async function toggleCompleted(id, type, currentStatus) {
         const pos = Number(i.posicion);
         return (!isNaN(pos)) ? Math.min(min, pos) : min;
       }, 0);
-      await updateDoc(docRef, { 
+      
+      const updateData = { 
         completado: false, 
         archivada: false,
         posicion: minPos - 1
-      });
+      };
+      
+      if (itemIndex !== -1) {
+        appState[type].items[itemIndex].posicion = updateData.posicion;
+      }
+      
+      await updateDoc(docRef, updateData);
     } else {
       const field = type === 'ideas' ? 'archivada' : 'completado';
-      const nextVal = !isCompleted;
       const updateData = { [field]: nextVal };
       
       if (type === 'compras' && nextVal === false) {
@@ -106,6 +156,10 @@ export async function toggleCompleted(id, type, currentStatus) {
           return (!isNaN(pos)) ? Math.min(min, pos) : min;
         }, 0);
         updateData.posicion = minPos - 1;
+        
+        if (itemIndex !== -1) {
+          appState[type].items[itemIndex].posicion = updateData.posicion;
+        }
       }
       
       await updateDoc(docRef, updateData);
@@ -119,6 +173,69 @@ export async function toggleCompleted(id, type, currentStatus) {
   } catch (err) {
     console.error('Error updating status:', err);
     showToast('Error al actualizar', 'error');
+
+    // Revertir DOM si falla
+    if (card && checkbox) {
+      if (type === 'ideas' || type === 'compras') {
+        card.classList.toggle('completed', isCompleted);
+        checkbox.classList.toggle('checked', isCompleted);
+      } else if (type === 'tareas') {
+        card.classList.toggle('completed', isCompleted);
+        checkbox.classList.toggle('checked', isCompleted);
+      }
+    }
+
+    // Revertir Store si falla
+    if (itemIndex !== -1 && oldItem) {
+      appState[type].items[itemIndex] = oldItem;
+      updateStatsBar(type);
+    }
+  }
+}
+
+// Función auxiliar para actualizar los contadores superiores de la stats-bar sin destruir la lista
+function updateStatsBar(type) {
+  const section = document.getElementById(`${type}-section`);
+  if (!section) return;
+  const statsBar = section.querySelector('.stats-bar');
+  if (!statsBar) return;
+
+  const items = appState[type].items;
+
+  if (type === 'compras') {
+    const counts = {
+      supermercado: items.filter(i => i.categoria === 'supermercado').length,
+      internet: items.filter(i => i.categoria === 'internet').length,
+      farmacia: items.filter(i => i.categoria === 'farmacia').length
+    };
+    const CATEGORIES = ['supermercado', 'internet', 'farmacia'];
+    CATEGORIES.forEach(cat => {
+      const itemEl = statsBar.querySelector(`[data-filter="${cat}"] .stat-value`);
+      if (itemEl) itemEl.textContent = counts[cat];
+    });
+  } else if (type === 'tareas') {
+    const totalTareas = items.filter(i => !i.archivada).length;
+    const archivedTareas = items.filter(i => i.archivada).length;
+    const pendingTareas = items.filter(i => !i.completado && !i.archivada).length;
+
+    const totalEl = statsBar.querySelector('[data-filter="todas"] .stat-value');
+    const doneEl = statsBar.querySelector('[data-filter="archivadas"] .stat-value');
+    const pendingEl = statsBar.querySelector('[data-filter="pendientes"] .stat-value');
+
+    if (totalEl) totalEl.textContent = totalTareas;
+    if (doneEl) doneEl.textContent = archivedTareas;
+    if (pendingEl) pendingEl.textContent = pendingTareas;
+  } else if (type === 'ideas') {
+    const totalIdeas = items.length;
+    const archivedIdeas = items.filter(i => i.archivada).length;
+
+    const totalEl = statsBar.querySelector('.stat-item:nth-child(1) .stat-value');
+    const doneEl = statsBar.querySelector('.stat-item:nth-child(2) .stat-value');
+    const pendingEl = statsBar.querySelector('.stat-item:nth-child(3) .stat-value');
+
+    if (totalEl) totalEl.textContent = totalIdeas;
+    if (doneEl) doneEl.textContent = archivedIdeas;
+    if (pendingEl) pendingEl.textContent = totalIdeas - archivedIdeas;
   }
 }
 

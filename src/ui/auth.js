@@ -157,9 +157,31 @@ function openMenu(trigger, menu) {
 
 async function handleSignOut() {
   try {
-    appState.unsubscribes.forEach(fn => fn());
+    appState.unsubscribes.forEach(fn => {
+      try { fn(); } catch (e) {}
+    });
     appState.unsubscribes = [];
     appState.firestoreInitialized = false;
+    
+    // Limpieza profunda de appState para evitar fugas de datos
+    appState.user = null;
+    appState.userId = null;
+    
+    const modules = ['compras', 'ideas', 'tareas'];
+    modules.forEach(mod => {
+      appState[mod].items = [];
+      appState[mod].selectedItems = new Set();
+      appState[mod].selectionMode = false;
+      appState[mod].loading = true;
+      appState[mod].hasRendered = false;
+      appState[mod].limit = 50;
+      appState[mod].hasMore = false;
+    });
+    
+    try {
+      localStorage.removeItem('workspace_last_user_id');
+    } catch (e) {}
+
     await signOut(auth);
   } catch (err) {
     showToast('Error al cerrar sesión', 'error');

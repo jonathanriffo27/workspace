@@ -12,6 +12,9 @@ import {
 } from "./ui/auth.js";
 import { initTabs, initSwipeNavigation } from "./ui/navigation.js";
 import { initVoiceCapture } from "./services/voiceService.js";
+import { renderComprasSection } from "./ui/sections/compras.js";
+import { renderIdeasSection } from "./ui/sections/ideas.js";
+import { renderTareasSection } from "./ui/sections/tareas.js";
 
 (function() {
   'use strict';
@@ -133,6 +136,44 @@ import { initVoiceCapture } from "./services/voiceService.js";
     initStore();
     initTabs();
     initSwipeNavigation();
+
+    // Suscripción al store para re-renderizado automático controlado
+    subscribe((state) => {
+      const activeTab = state.activeTab;
+      if (!state.userId) return;
+
+      // 1. Evitar re-render si el usuario está interactuando activamente con campos
+      const activeElement = document.activeElement;
+      const isTyping = activeElement && (
+        activeElement.tagName === 'INPUT' || 
+        activeElement.tagName === 'TEXTAREA' || 
+        activeElement.closest('.is-editing')
+      );
+      if (isTyping) return;
+
+      // 2. Evitar re-render si la selección múltiple o el modo de arrastre están activos
+      const sectionState = state[activeTab];
+      if (sectionState) {
+        if (sectionState.selectionMode || (sectionState.selectedItems && sectionState.selectedItems.size > 0)) {
+          return;
+        }
+      }
+
+      // 3. Evitar re-render si se está arrastrando algún item
+      if (state.isDragging || document.querySelector('.dragging')) return;
+
+      // 4. Evitar re-render si hay un modal abierto
+      if (document.querySelector('.modal-overlay.active')) return;
+
+      // Render seguro según el tab activo
+      if (activeTab === 'compras') {
+        renderComprasSection();
+      } else if (activeTab === 'ideas') {
+        renderIdeasSection();
+      } else if (activeTab === 'tareas') {
+        renderTareasSection();
+      }
+    });
 
     onAuthStateChanged(auth, (user) => {
       if (user) {

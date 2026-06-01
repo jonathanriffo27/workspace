@@ -140,6 +140,11 @@ export function renderTareasSection() {
                   <button class="btn-icon btn-icon--primary save-task-btn icon-only" data-id="${tarea.id}" title="Guardar cambios">
                     ${saveIcon}
                   </button>
+                  <div class="sync-indicator" title="Sincronizado">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
@@ -270,12 +275,14 @@ function attachTareasEvents() {
       const id = saveBtn.dataset.id;
       const cardEl = saveBtn.closest('.item-card');
       const textarea = cardEl.querySelector('textarea');
-      const sync = cardEl.querySelector('.sync-indicator');
+      const sync = cardEl?.querySelector('.sync-indicator');
       const notas = textarea.value;
 
       if (await updateNotes(id, 'tareas', notas)) {
-        sync.classList.add('visible');
-        setTimeout(() => sync.classList.remove('visible'), 2000);
+        if (sync) {
+          sync.classList.add('visible');
+          setTimeout(() => sync.classList.remove('visible'), 2000);
+        }
         showToast('Notas guardadas', 'success');
       }
     }

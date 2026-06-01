@@ -16,9 +16,13 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 let isRecording = false;
 let voiceTimer = null;
+let voiceStopTimer = null;
+let partialResultsListener = null;
+let touchStartedOnIdeasNav = false;
 let processingToast = null;
 const LONG_PRESS_DURATION = 600;
 const TIMEOUT_MS = 25000;
+const MAX_RECORDING_MS = 20000;
 
 export async function initVoiceCapture() {
   const isAvailable = await SpeechRecognition.available();
@@ -33,7 +37,35 @@ export async function initVoiceCapture() {
 
   if (!ideasNav) return;
 
+  const resetVoiceUi = () => {
+    clearTimeout(voiceTimer);
+    clearTimeout(voiceStopTimer);
+    voiceTimer = null;
+    voiceStopTimer = null;
+    isRecording = false;
+    touchStartedOnIdeasNav = false;
+    ideasNav.classList.remove('preparing');
+    ideasNav.classList.remove('recording');
+    overlay?.classList.remove('active');
+    overlay?.classList.remove('analyzing');
+    if (transcriptEl) {
+      transcriptEl.textContent = 'Habla ahora...';
+      delete transcriptEl.dataset.hasContent;
+    }
+  };
+
+  const removePartialResultsListener = async () => {
+    if (!partialResultsListener) return;
+    try {
+      await partialResultsListener.remove();
+    } catch (error) {
+      console.error('Error removing speech listener:', error);
+    }
+    partialResultsListener = null;
+  };
+
   const startRecording = async () => {
+    if (isRecording) return;
     try {
       const permissions = await SpeechRecognition.checkPermissions();
       if (permissions.speechRecognition !== 'granted') {
@@ -44,8 +76,8 @@ export async function initVoiceCapture() {
         }
       }
 
-      isRecording = true;
       ideasNav.classList.add('preparing');
+      await removePartialResultsListener();
       
       await SpeechRecognition.start({
         language: 'es-ES',
@@ -55,30 +87,44 @@ export async function initVoiceCapture() {
         popup: false
       });
       
+      isRecording = true;
       ideasNav.classList.remove('preparing');
       ideasNav.classList.add('recording');
-      overlay.classList.add('active');
-      transcriptEl.textContent = 'Habla ahora...';
-      
-      await Haptics.impact({ style: ImpactStyle.Medium });
+      overlay?.classList.add('active');
+      if (transcriptEl) {
+        transcriptEl.textContent = 'Habla ahora...';
+        delete transcriptEl.dataset.hasContent;
+      }
+       
+      try {
+        await Haptics.impact({ style: ImpactStyle.Medium });
+      } catch (error) {
+        // La vibración es opcional y puede fallar según dispositivo/permisos.
+      }
 
-      SpeechRecognition.addListener('partialResults', (data) => {
+      partialResultsListener = await SpeechRecognition.addListener('partialResults', (data) => {
         if (data.matches && data.matches.length > 0) {
           transcriptEl.textContent = data.matches[0];
           transcriptEl.dataset.hasContent = 'true';
         }
       });
 
+      voiceStopTimer = setTimeout(() => {
+        if (isRecording) stopRecording();
+      }, MAX_RECORDING_MS);
+
     } catch (e) {
       console.error('Error starting voice capture:', e);
-      isRecording = false;
-      ideasNav.classList.remove('preparing');
+      await removePartialResultsListener();
+      resetVoiceUi();
       showToast('Error al iniciar micrófono', 'error');
     }
   };
 
   const stopRecording = async () => {
     if (!isRecording) return;
+    clearTimeout(voiceStopTimer);
+    voiceStopTimer = null;
     
     try {
       await SpeechRecognition.stop();
@@ -86,20 +132,26 @@ export async function initVoiceCapture() {
       
       const text = transcriptEl.dataset.hasContent === 'true' ? transcriptEl.textContent.trim() : '';
       
-      overlay.classList.remove('active');
+      overlay?.classList.remove('active');
       ideasNav.classList.remove('preparing');
       ideasNav.classList.remove('recording');
       delete transcriptEl.dataset.hasContent;
 
-      await Haptics.impact({ style: ImpactStyle.Light });
+      await removePartialResultsListener();
+
+      try {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      } catch (error) {
+        // La vibración es opcional y puede fallar según dispositivo/permisos.
+      }
 
       if (text && text.length > 1) {
         handleFinalText(text);
       }
     } catch (e) {
       console.error('Error stopping voice capture:', e);
-      overlay.classList.remove('active');
-      ideasNav.classList.remove('recording');
+      await removePartialResultsListener();
+      resetVoiceUi();
     }
   };
 
@@ -122,13 +174,27 @@ export async function initVoiceCapture() {
     processVoiceCapture(text);
   }
 
-  ideasNav.addEventListener('touchstart', (e) => { 
+  ideasNav.addEventListener('touchstart', () => {
+    touchStartedOnIdeasNav = true;
     voiceTimer = setTimeout(startRecording, LONG_PRESS_DURATION); 
   }, { passive: true });
 
   window.addEventListener('touchend', () => { 
     clearTimeout(voiceTimer); 
-    if (isRecording) stopRecording(); 
+    if (isRecording && touchStartedOnIdeasNav) stopRecording();
+    touchStartedOnIdeasNav = false;
+  });
+
+  window.addEventListener('touchcancel', () => {
+    clearTimeout(voiceTimer);
+    if (isRecording && touchStartedOnIdeasNav) stopRecording();
+    touchStartedOnIdeasNav = false;
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && isRecording) {
+      stopRecording();
+    }
   });
 }
 
