@@ -27,8 +27,8 @@ const MAX_RECORDING_MS = 20000;
 const STOP_TIMEOUT_MS = 1500;
 
 export async function initVoiceCapture() {
-  const isAvailable = await SpeechRecognition.available();
-  if (!isAvailable) {
+  const availability = await SpeechRecognition.available();
+  if (!availability?.available) {
     console.warn('Speech Recognition not available on this device');
     return;
   }
@@ -36,6 +36,7 @@ export async function initVoiceCapture() {
   const overlay = document.getElementById('voice-overlay');
   const transcriptEl = document.getElementById('voice-transcript');
   const ideasNav = document.querySelector('.nav-item[data-tab="ideas"]');
+  let lastTranscript = '';
 
   if (!ideasNav) return;
 
@@ -55,6 +56,7 @@ export async function initVoiceCapture() {
       transcriptEl.textContent = 'Habla ahora...';
       delete transcriptEl.dataset.hasContent;
     }
+    lastTranscript = '';
   };
 
   const stopSpeechRecognitionSafely = async () => {
@@ -103,6 +105,18 @@ export async function initVoiceCapture() {
 
       ideasNav.classList.add('preparing');
       await removePartialResultsListener();
+      lastTranscript = '';
+
+      partialResultsListener = await SpeechRecognition.addListener('partialResults', (data) => {
+        const transcript = data.matches?.[0]?.trim();
+        if (transcript) {
+          lastTranscript = transcript;
+          if (transcriptEl) {
+            transcriptEl.textContent = transcript;
+            transcriptEl.dataset.hasContent = 'true';
+          }
+        }
+      });
       
       await SpeechRecognition.start({
         language: 'es-ES',
@@ -133,13 +147,6 @@ export async function initVoiceCapture() {
         // La vibración es opcional y puede fallar según dispositivo/permisos.
       }
 
-      partialResultsListener = await SpeechRecognition.addListener('partialResults', (data) => {
-        if (transcriptEl && data.matches && data.matches.length > 0) {
-          transcriptEl.textContent = data.matches[0];
-          transcriptEl.dataset.hasContent = 'true';
-        }
-      });
-
       voiceStopTimer = setTimeout(() => {
         if (isRecording) stopRecording();
       }, MAX_RECORDING_MS);
@@ -153,11 +160,16 @@ export async function initVoiceCapture() {
 
   const stopRecording = async () => {
     if (!isRecording) return;
-    const text = transcriptEl?.dataset.hasContent === 'true' ? transcriptEl.textContent.trim() : '';
 
-    resetVoiceUi();
-    await removePartialResultsListener();
     await stopSpeechRecognitionSafely();
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    const text = (lastTranscript || (
+      transcriptEl?.dataset.hasContent === 'true' ? transcriptEl.textContent.trim() : ''
+    )).trim();
+
+    await removePartialResultsListener();
+    resetVoiceUi();
 
     try {
       await Haptics.impact({ style: ImpactStyle.Light });
@@ -219,6 +231,15 @@ export async function initVoiceCapture() {
 
 
 async function processVoiceCapture(text) {
+  if (!appState.userId) {
+    if (processingToast) {
+      processingToast.remove();
+      processingToast = null;
+    }
+    showToast('Inicia sesión para guardar capturas', 'error');
+    return;
+  }
+
   const timeoutId = setTimeout(() => {
     if (processingToast) {
       processingToast.remove();
@@ -306,6 +327,10 @@ async function processVoiceCapture(text) {
       }
     });
 
+    if (writePromises.length === 0) {
+      throw new Error('No voice items were parsed from transcript');
+    }
+
     await Promise.all(writePromises);
 
     clearTimeout(timeoutId);
@@ -324,6 +349,7 @@ async function processVoiceCapture(text) {
     showVoiceToast(message, text, mainModule, null);
     switchTab(mainModule);
   } catch (err) {
+    console.error('Error processing voice capture:', err);
     clearTimeout(timeoutId);
     if (processingToast) {
       processingToast.remove();
