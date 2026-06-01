@@ -15,6 +15,7 @@ import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 let isRecording = false;
+let isStarting = false;
 let voiceTimer = null;
 let voiceStopTimer = null;
 let partialResultsListener = null;
@@ -23,6 +24,7 @@ let processingToast = null;
 const LONG_PRESS_DURATION = 600;
 const TIMEOUT_MS = 25000;
 const MAX_RECORDING_MS = 20000;
+const STOP_TIMEOUT_MS = 1500;
 
 export async function initVoiceCapture() {
   const isAvailable = await SpeechRecognition.available();
@@ -43,6 +45,7 @@ export async function initVoiceCapture() {
     voiceTimer = null;
     voiceStopTimer = null;
     isRecording = false;
+    isStarting = false;
     touchStartedOnIdeasNav = false;
     ideasNav.classList.remove('preparing');
     ideasNav.classList.remove('recording');
@@ -51,6 +54,17 @@ export async function initVoiceCapture() {
     if (transcriptEl) {
       transcriptEl.textContent = 'Habla ahora...';
       delete transcriptEl.dataset.hasContent;
+    }
+  };
+
+  const stopSpeechRecognitionSafely = async () => {
+    try {
+      await Promise.race([
+        SpeechRecognition.stop(),
+        new Promise(resolve => setTimeout(resolve, STOP_TIMEOUT_MS))
+      ]);
+    } catch (error) {
+      console.error('Error stopping speech recognition:', error);
     }
   };
 
@@ -64,13 +78,24 @@ export async function initVoiceCapture() {
     partialResultsListener = null;
   };
 
+  const cancelRecording = async ({ stopNative = false } = {}) => {
+    const shouldStopNative = stopNative || isRecording;
+    resetVoiceUi();
+    await removePartialResultsListener();
+    if (shouldStopNative) {
+      await stopSpeechRecognitionSafely();
+    }
+  };
+
   const startRecording = async () => {
-    if (isRecording) return;
+    if (isRecording || isStarting) return;
+    isStarting = true;
     try {
       const permissions = await SpeechRecognition.checkPermissions();
       if (permissions.speechRecognition !== 'granted') {
         const newPermissions = await SpeechRecognition.requestPermissions();
         if (newPermissions.speechRecognition !== 'granted') {
+          isStarting = false;
           showToast('Permiso de micrófono denegado', 'error');
           return;
         }
@@ -87,7 +112,13 @@ export async function initVoiceCapture() {
         popup: false
       });
       
+      isStarting = false;
       isRecording = true;
+      if (!touchStartedOnIdeasNav) {
+        await cancelRecording({ stopNative: true });
+        return;
+      }
+
       ideasNav.classList.remove('preparing');
       ideasNav.classList.add('recording');
       overlay?.classList.add('active');
@@ -103,7 +134,7 @@ export async function initVoiceCapture() {
       }
 
       partialResultsListener = await SpeechRecognition.addListener('partialResults', (data) => {
-        if (data.matches && data.matches.length > 0) {
+        if (transcriptEl && data.matches && data.matches.length > 0) {
           transcriptEl.textContent = data.matches[0];
           transcriptEl.dataset.hasContent = 'true';
         }
@@ -115,43 +146,27 @@ export async function initVoiceCapture() {
 
     } catch (e) {
       console.error('Error starting voice capture:', e);
-      await removePartialResultsListener();
-      resetVoiceUi();
+      await cancelRecording({ stopNative: true });
       showToast('Error al iniciar micrófono', 'error');
     }
   };
 
   const stopRecording = async () => {
     if (!isRecording) return;
-    clearTimeout(voiceStopTimer);
-    voiceStopTimer = null;
-    
+    const text = transcriptEl?.dataset.hasContent === 'true' ? transcriptEl.textContent.trim() : '';
+
+    resetVoiceUi();
+    await removePartialResultsListener();
+    await stopSpeechRecognitionSafely();
+
     try {
-      await SpeechRecognition.stop();
-      isRecording = false;
-      
-      const text = transcriptEl.dataset.hasContent === 'true' ? transcriptEl.textContent.trim() : '';
-      
-      overlay?.classList.remove('active');
-      ideasNav.classList.remove('preparing');
-      ideasNav.classList.remove('recording');
-      delete transcriptEl.dataset.hasContent;
+      await Haptics.impact({ style: ImpactStyle.Light });
+    } catch (error) {
+      // La vibración es opcional y puede fallar según dispositivo/permisos.
+    }
 
-      await removePartialResultsListener();
-
-      try {
-        await Haptics.impact({ style: ImpactStyle.Light });
-      } catch (error) {
-        // La vibración es opcional y puede fallar según dispositivo/permisos.
-      }
-
-      if (text && text.length > 1) {
-        handleFinalText(text);
-      }
-    } catch (e) {
-      console.error('Error stopping voice capture:', e);
-      await removePartialResultsListener();
-      resetVoiceUi();
+    if (text && text.length > 1) {
+      handleFinalText(text);
     }
   };
 
@@ -191,9 +206,13 @@ export async function initVoiceCapture() {
     touchStartedOnIdeasNav = false;
   });
 
+  overlay?.addEventListener('click', () => {
+    cancelRecording();
+  });
+
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && isRecording) {
-      stopRecording();
+      cancelRecording();
     }
   });
 }
