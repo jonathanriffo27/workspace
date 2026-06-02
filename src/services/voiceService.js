@@ -169,6 +169,11 @@ export async function initVoiceCapture() {
   const stopRecording = async () => {
     if (!isRecording) return;
 
+    // Ocultar overlay e indicadores visuales de inmediato al levantar el dedo
+    overlay?.classList.remove('active');
+    ideasNav?.classList.remove('recording');
+    ideasNav?.classList.remove('preparing');
+
     await stopSpeechRecognitionSafely();
     await new Promise(resolve => setTimeout(resolve, 250));
 
