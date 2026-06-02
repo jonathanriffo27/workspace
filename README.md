@@ -49,6 +49,11 @@ feature I use most.
 - **Secure by Design:** Built-in XSS protection, input validation (DataService), and secure credential management via Vite environment variables.
 - **Reactive State:** Centralized `appState` for instant UI feedback and optimistic updates.
 - **Advanced UI:** Inline title editing, sortable lists, and multi-select bulk actions.
+- **📱 Native Android Integration:** Packaged as a native Android APK using **Capacitor**, featuring integration with native device features:
+  - **Speech Recognition:** Direct bridge to Android's native Speech Recognition API for seamless voice-to-text.
+  - **Haptics:** Native haptic vibrations for feedback upon beginning and ending voice recording.
+  - **Status Bar & Keyboard:** Full edge-to-edge layout styling with dynamic status bar color changing (light/dark theme sync) and native keyboard accessories.
+  - **Google Native Auth:** Integration with native Firebase Authentication plugins for smooth sign-in flow.
 - **Typography:** DM Serif Display & DM Sans pairing.
 
 ## ⚡ Performance Optimizations
@@ -114,6 +119,37 @@ Preview the build locally:
 ```bash
 pnpm preview
 ```
+
+## 📱 Android Native Development (Capacitor)
+
+The application uses **Capacitor** to compile into a native Android project. The native code is housed in the `android/` directory.
+
+### Commands for Native Flow
+
+1. **Sync Web Code to Android Assets:**
+   After building your production web app, synchronize the compiled assets to the Android project directory:
+   ```bash
+   pnpm build && npx cap sync
+   ```
+
+2. **Open Project in Android Studio:**
+   To run, debug, or build signed release APKs, open the native project in Android Studio:
+   ```bash
+   npx cap open android
+   ```
+
+3. **Compile Debug APK Locally via CLI:**
+   You can assemble a debug APK without opening Android Studio by running:
+   ```bash
+   cd android && ./gradlew assembleDebug
+   ```
+   The output APK will be generated at `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+### Automated GitHub Actions CI Pipeline
+
+The project features a complete GitHub Actions workflow configured in `.github/workflows/build-apk.yml`.
+* **Triggers:** Automatic on pushes to `main`, or manual run via `workflow_dispatch` (e.g. `gh workflow run build-apk.yml --ref <branch>`).
+* **Artifacts:** Compiles the optimized web client, syncs Capacitor assets, signs the debug package with a safe debug keystore, and uploads the final `app-debug.apk` directly to GitHub Actions artifacts for instant downloading and testing on mobile devices.
 
 ## 📜 Specification
 For deep technical details on the UI/UX, state management, and functional requirements, see [SPEC.md](./SPEC.md).
