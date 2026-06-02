@@ -1,9 +1,8 @@
-import { appState, notify } from '../store.js';
+import { appState } from '../store.js';
 import { renderComprasSection } from './sections/compras.js';
 import { renderIdeasSection } from './sections/ideas.js';
 import { renderTareasSection } from './sections/tareas.js';
 import { clearSelection, isSelectionActive } from './components/multiSelect.js';
-import { initComprasSync, initIdeasSync, initTareasSync } from '../services/firebaseSync.js';
 
 const TABS = ['compras', 'ideas', 'tareas'];
 
@@ -27,15 +26,11 @@ export function switchTab(tab) {
     section.classList.toggle('active', section.id === `${tab}-section`);
   });
 
-  // Lazy initialize sync based on tab
   if (tab === 'compras') {
-    initComprasSync();
     renderComprasSection();
   } else if (tab === 'ideas') {
-    initIdeasSync();
     renderIdeasSection();
   } else if (tab === 'tareas') {
-    initTareasSync();
     renderTareasSection();
   }
 
@@ -64,7 +59,7 @@ export function initTabs() {
   if (TABS.includes(hash)) {
     switchTab(hash);
   } else {
-    switchTab('compras');
+    switchTab('ideas');
   }
 }
 

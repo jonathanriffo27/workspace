@@ -1,7 +1,6 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase.js";
-import { appState, initStore, subscribe } from "./store.js";
-import { initFirestoreSync } from "./services/firebaseSync.js";
+import { appState, initStore, loadUserCache, subscribe } from "./store.js";
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
@@ -140,7 +139,7 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
     // Suscripción al store para re-renderizado automático controlado
     subscribe((state) => {
       const activeTab = state.activeTab;
-      if (!state.userId) return;
+      if (!state.userId && (!state.authLoading || !state.lastCachedUserId)) return;
 
       // 1. Evitar re-render si el usuario está interactuando activamente con campos
       const activeElement = document.activeElement;
@@ -179,16 +178,36 @@ import { renderTareasSection } from "./ui/sections/tareas.js";
       if (user) {
         appState.user = user;
         appState.userId = user.uid;
+        appState.authLoading = false;
+        appState.lastCachedUserId = user.uid;
+        try {
+          localStorage.setItem('workspace_last_user_id', user.uid);
+        } catch (error) {
+          // La caché local es una optimización; la app sigue funcionando sin ella.
+        }
+        loadUserCache(user.uid);
         if (!appState.firestoreInitialized) {
-          initFirestoreSync();
           appState.firestoreInitialized = true;
+          import('./services/firebaseSync.js')
+            .then(({ initFirestoreSync }) => initFirestoreSync())
+            .catch((error) => {
+              appState.firestoreInitialized = false;
+              console.error('Error loading Firestore sync:', error);
+            });
         }
         hideLoginScreen();
         updateHeaderForUser(user, { getTheme: getCurrentTheme, onToggleTheme: toggleTheme });
       } else {
         appState.user = null;
         appState.userId = null;
+        appState.authLoading = false;
+        appState.lastCachedUserId = null;
         appState.firestoreInitialized = false;
+        ['compras', 'ideas', 'tareas'].forEach((module) => {
+          appState[module].items = [];
+          appState[module].loading = false;
+          appState[module].hasRendered = false;
+        });
         showLoginScreen();
         updateHeaderForUser(null);
       }

@@ -13,6 +13,9 @@ import { appState, STORAGE_KEYS, notify } from "../store.js";
 import { loadFromStorage, saveToStorage } from "../utils/storage.js";
 
 async function migrateDataIfNecessary(userId) {
+  const migrationKey = `workspace_legacy_migrated_${userId}`;
+  if (localStorage.getItem(migrationKey) === 'true') return;
+
   const collectionsToCheck = [
     { key: STORAGE_KEYS.compras, collection: collections.compras, type: 'compras' },
     { key: STORAGE_KEYS.ideas, collection: collections.ideas, type: 'ideas' },
@@ -48,6 +51,12 @@ async function migrateDataIfNecessary(userId) {
   });
 
   await Promise.all(promises);
+
+  try {
+    localStorage.setItem(migrationKey, 'true');
+  } catch (error) {
+    // La marca solo evita checks repetidos; no es crítica para sincronizar.
+  }
 }
 
 function safeToMillis(val) {
@@ -156,10 +165,14 @@ export async function initFirestoreSync() {
 
   appState.firestoreInitialized = true;
 
-  await migrateDataIfNecessary(userId);
-
-  // Inicializar todas las suscripciones para que los contadores y datos estén listos
-  initComprasSync();
+  // Priorizamos Ideas para que la captura rápida de voz tenga datos visibles antes.
   initIdeasSync();
-  initTareasSync();
+  requestAnimationFrame(() => {
+    initComprasSync();
+    initTareasSync();
+  });
+
+  migrateDataIfNecessary(userId).catch((error) => {
+    console.error('Error during background migration:', error);
+  });
 }

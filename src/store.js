@@ -10,6 +10,7 @@ export const appState = {
   activeTab: 'ideas',
   user: null,
   userId: null,
+  lastCachedUserId: null,
   authLoading: true,
   isDragging: false,
   firestoreInitialized: false,
@@ -60,7 +61,13 @@ export function subscribe(callback) {
 }
 
 export function notify() {
-  subscribers.forEach(callback => callback(appState));
+  if (notify.scheduled) return;
+  notify.scheduled = true;
+
+  requestAnimationFrame(() => {
+    notify.scheduled = false;
+    subscribers.forEach(callback => callback(appState));
+  });
 }
 
 // Expose for debugging and screenshots
@@ -69,9 +76,8 @@ window.notify = notify;
 export function initStore() {
   const lastUserId = localStorage.getItem('workspace_last_user_id');
   if (lastUserId) {
-    appState.compras.items = loadFromStorage(`${STORAGE_KEYS.compras}_${lastUserId}`);
-    appState.ideas.items = loadFromStorage(`${STORAGE_KEYS.ideas}_${lastUserId}`);
-    appState.tareas.items = loadFromStorage(`${STORAGE_KEYS.tareas}_${lastUserId}`);
+    appState.lastCachedUserId = lastUserId;
+    loadUserCache(lastUserId, { notifyChange: false });
   } else {
     appState.compras.items = loadFromStorage(STORAGE_KEYS.compras);
     appState.ideas.items = loadFromStorage(STORAGE_KEYS.ideas);
@@ -82,6 +88,20 @@ export function initStore() {
   window.appState = appState;
   
   notify();
+}
+
+export function loadUserCache(userId, { notifyChange = true } = {}) {
+  if (!userId) return;
+
+  const modules = ['compras', 'ideas', 'tareas'];
+  modules.forEach((module) => {
+    const items = loadFromStorage(`${STORAGE_KEYS[module]}_${userId}`);
+    appState[module].items = items;
+    appState[module].loading = items.length === 0;
+    appState[module].hasRendered = false;
+  });
+
+  if (notifyChange) notify();
 }
 
 export const CATEGORIAS = ['supermercado', 'internet', 'farmacia', 'otros'];

@@ -27,16 +27,16 @@ const MAX_RECORDING_MS = 20000;
 const STOP_TIMEOUT_MS = 1500;
 
 export async function initVoiceCapture() {
-  const availability = await SpeechRecognition.available();
-  if (!availability?.available) {
-    console.warn('Speech Recognition not available on this device');
-    return;
-  }
-
   const overlay = document.getElementById('voice-overlay');
   const transcriptEl = document.getElementById('voice-transcript');
   const ideasNav = document.querySelector('.nav-item[data-tab="ideas"]');
   let lastTranscript = '';
+  const availabilityPromise = SpeechRecognition.available()
+    .then((availability) => !!availability?.available)
+    .catch((error) => {
+      console.error('Error checking speech recognition availability:', error);
+      return false;
+    });
 
   if (!ideasNav) return;
 
@@ -93,6 +93,14 @@ export async function initVoiceCapture() {
     if (isRecording || isStarting) return;
     isStarting = true;
     try {
+      const isAvailable = await availabilityPromise;
+      if (!isAvailable) {
+        isStarting = false;
+        console.warn('Speech Recognition not available on this device');
+        showToast('Reconocimiento de voz no disponible', 'error');
+        return;
+      }
+
       const permissions = await SpeechRecognition.checkPermissions();
       if (permissions.speechRecognition !== 'granted') {
         const newPermissions = await SpeechRecognition.requestPermissions();
